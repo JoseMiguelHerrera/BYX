@@ -10,7 +10,7 @@ module.exports = {
       },
       colors: {
         'privy-navy': '#160B45',
-        'privy-light-blue': '#EFF1FD',
+        'frac-dark-gray': '#1b1b1c',
         'privy-blueish': '#D4D9FC',
         'privy-pink': '#FF8271',
       },

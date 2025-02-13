@@ -1,20 +1,9 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getAccessToken, usePrivy, useFundWallet } from "@privy-io/react-auth";
-import { arbitrumSepolia} from 'viem/chains'//hard coded for now
+import { getAccessToken, usePrivy } from "@privy-io/react-auth";
 import Head from "next/head";
+import Funding from "./components/Funding";
 
-async function verifyToken() {
-  const url = "/api/verify";
-  const accessToken = await getAccessToken();
-  const result = await fetch(url, {
-    headers: {
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
-    },
-  });
-
-  return await result.json();
-}
 
 async function getBalance(address: string) {
   console.log("sending address", address)
@@ -40,10 +29,7 @@ export default function DashboardPage() {
     authenticated,
     user,
     logout,
-    linkWallet,
-    unlinkWallet,
   } = usePrivy();
-  const {fundWallet} = useFundWallet();
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/");
@@ -51,7 +37,6 @@ export default function DashboardPage() {
   }, [ready, authenticated, router]);
 
   const numAccounts = user?.linkedAccounts?.length || 0;
-  const canRemoveAccount = numAccounts > 1;
   const wallet = user?.wallet;
   let smartWallet = null;
 
@@ -59,10 +44,7 @@ export default function DashboardPage() {
     smartWallet = (user?.linkedAccounts[1] as any).address
   }
 
-  const fundWalletConfig = {
-    chain: arbitrumSepolia,
-    asset: 'native-currency'
-  }
+
   
   useEffect(() => {
     if (smartWallet) {
@@ -77,85 +59,74 @@ export default function DashboardPage() {
   return (
     <>
       <Head>
-        <title>Jarvis 2.0 Demo WIP</title>
+        <title>FracFi</title>
       </Head>
-      <div>
-      {balance && (
-                <p className="text-sm">
-                  Wallet Balance: {balance} WEI
-                </p>
-              )} 
+
+      <div className="h-screen flex flex-col">
+        <nav className="bg-violet-800 px-4 sm:px-20 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-semibold text-white">FracFi</h1>
+            {ready && authenticated && (
+              <div className="flex gap-4 items-center">
+                <div 
+                  className="text-sm bg-violet-200 py-2 px-4 rounded-md text-violet-700 cursor-pointer relative group flex items-center gap-2"
+                  title={smartWallet || 'No wallet connected'}
+                >
+                  Smart Wallet Address: {smartWallet ? `${smartWallet.slice(0, 6)}...${smartWallet.slice(-4)}` : 'No wallet connected'}
+                  {smartWallet && (
+                    <>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(smartWallet);
+                        }}
+                        className="hover:text-violet-900"
+                        title="Copy address"
+                      >
+                        📋
+                      </button>
+                      <div className="absolute hidden group-hover:block bg-gray-900 text-white p-2 rounded-md text-xs whitespace-nowrap -bottom-10 left-1/2 transform -translate-x-1/2">
+                        {smartWallet}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-sm bg-violet-200 hover:text-violet-900 py-2 px-4 rounded-md text-violet-700"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        <div className="flex-1 flex">
+          {/* Left Sidebar */}
+          <div className="w-64 bg-violet-900 p-4">
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={()=>{}}
+                className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
+              >
+                Funding
+              </button>
+              {/* Additional buttons can be added here */}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <main className="flex-1 px-4 sm:px-20 py-6 sm:py-10 bg-frac-dark-gray overflow-auto">
+            {ready && authenticated ? (
+              <>
+                <div className="mt-12 flex gap-4 flex-wrap">
+                  <Funding smartWalletAddress={smartWallet} />
+                </div>
+              </>
+            ) : null}
+          </main>
+        </div>
       </div>
-
-      <main className="flex flex-col min-h-screen px-4 sm:px-20 py-6 sm:py-10 bg-privy-light-blue">
-        {ready && authenticated ? (
-          <>
-            <div className="flex flex-row justify-between">
-              <h1 className="text-2xl font-semibold">Jarvis 2.0 Demo WIP</h1>
-              <button
-                onClick={logout}
-                className="text-sm bg-violet-200 hover:text-violet-900 py-2 px-4 rounded-md text-violet-700"
-              >
-                Logout
-              </button>
-            </div>
-            <div className="mt-12 flex gap-4 flex-wrap">
-              <button
-                onClick={() => fundWallet(smartWallet,fundWalletConfig)}
-                className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
-              >
-                Fund Wallet
-              </button>
-
-              {wallet ? (
-                <button
-                  onClick={() => {
-                    unlinkWallet(wallet.address);
-                  }}
-                  className="text-sm border border-violet-600 hover:border-violet-700 py-2 px-4 rounded-md text-violet-600 hover:text-violet-700 disabled:border-gray-500 disabled:text-gray-500 hover:disabled:text-gray-500"
-                  disabled={!canRemoveAccount}
-                >
-                  Unlink wallet
-                </button>
-              ) : (
-                <button
-                  onClick={linkWallet}
-                  className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
-                >
-                  Connect wallet
-                </button>
-              )}
-
- 
-
-              <button
-                onClick={() => verifyToken().then(setVerifyResult)}
-                className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
-              >
-                Verify token on server
-              </button>
-
-              {Boolean(verifyResult) && (
-                <details className="w-full">
-                  <summary className="mt-6 font-bold uppercase text-sm text-gray-600">
-                    Server verify result
-                  </summary>
-                  <pre className="max-w-4xl bg-slate-700 text-slate-50 font-mono p-4 text-xs sm:text-sm rounded-md mt-2">
-                    {JSON.stringify(verifyResult, null, 2)}
-                  </pre>
-                </details>
-              )}
-            </div>
-
-            <p className="mt-6 font-bold uppercase text-sm text-gray-600">
-              User object
-            </p>
-            <pre className="max-w-4xl bg-slate-700 text-slate-50 font-mono p-4 text-xs sm:text-sm rounded-md mt-2">
-              {JSON.stringify(user, null, 2)}
-            </pre>
-          </>
-        ) : null}
-      </main>
     </>
   );
 }

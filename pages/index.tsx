@@ -43,7 +43,7 @@ export default function LoginPage() {
       </Head>
 
       <main className="flex min-h-screen min-w-full">
-        <div className="flex bg-privy-light-blue flex-1 p-6 justify-center items-center">
+        <div className="flex frac-dark-gray flex-1 p-6 justify-center items-center">
           <div>
             <div>
               <Portal style={{ maxWidth: "100%", height: "auto" }} />
