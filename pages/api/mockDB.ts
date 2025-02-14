@@ -37,6 +37,13 @@ export interface ChainMetadata {
                 address: null,
                 priceUSD: 27000
             },
+            {
+                name: 'USDC',
+                symbol: 'USDC',
+                isNative: false,
+                address: "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+                priceUSD: 1.00
+            }
         ],
       },
     {
@@ -89,6 +96,13 @@ export interface ChainMetadata {
                 address: null,
                 priceUSD: 27000
             },
+            {
+                name: 'USDC',
+                symbol: 'USDC',
+                isNative: false,
+                address: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+                priceUSD: 1.00
+            }
         ],
       },
     {

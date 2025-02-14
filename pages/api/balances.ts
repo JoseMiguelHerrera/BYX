@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createPublicClient, http, Address,Chain, formatUnits } from "viem";
+import { createPublicClient, http, Address,Chain, formatUnits, getContract } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
 import { arbitrum, arbitrumSepolia, base, baseSepolia, berachain, berachainTestnet, mainnet, sepolia } from 'viem/chains'//hard coded for now
 import { ChainMetadata, mockChains } from "./mockDB";
+import { erc20ABI } from "./abis";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
@@ -52,6 +53,23 @@ async function getNativeAssetBalance(address: Address, viemChain: Chain) {
     return formatUnits(balance, viemChain.nativeCurrency.decimals);
 }
 
+async function getERC20Balance(address: Address, viemChain: Chain, assetAddress: string) {
+    const client = createPublicClient({
+        chain: viemChain,
+        transport: http(), // Use default RPC
+    });
+
+    const contract = getContract({
+        address: assetAddress as Address,
+        abi: erc20ABI,
+        client: client,
+    });
+
+    const balance = await contract.read.balanceOf([address]);
+    const decimals = await contract.read.decimals();
+    return formatUnits(balance, decimals);
+}
+
 async function handler(
     req: NextApiRequest,
     res: NextApiResponse<
@@ -72,16 +90,32 @@ async function handler(
         let balances: {chain: string, balance: string, symbol: string, usdValue: number}[] = [];
         for(const chainMetadata of chainsMetadata){
             const viemChain = getViemChain(chainMetadata);
-            const balance = await getNativeAssetBalance(address,viemChain);
-            const nativeAsset = chainMetadata.assets[0];
-            const usdValue = nativeAsset?.priceUSD ? parseFloat(balance) * nativeAsset.priceUSD : 0;
+            //const balance = await getNativeAssetBalance(address,viemChain);
+            //const nativeAsset = chainMetadata.assets[0];
+            //const usdValue = nativeAsset?.priceUSD ? parseFloat(balance) * nativeAsset.priceUSD : 0;
             
-            balances.push({
-                chain: chainMetadata.name, 
-                balance: balance.toString(), 
-                symbol: nativeAsset?.symbol || '',
-                usdValue: usdValue
-            });
+            for(const asset of chainMetadata.assets){
+
+                let balance: string;
+                if(asset.isNative){
+                    balance = await getNativeAssetBalance(address,viemChain);
+                } else {
+                    if(!asset.address) continue;
+                    balance = await getERC20Balance(address,viemChain,asset.address);
+                }
+
+                const usdValue = asset.priceUSD ? parseFloat(balance) * asset.priceUSD : 0;
+
+                balances.push({
+                    chain: chainMetadata.name, 
+                    balance: balance.toString(), 
+                    symbol: asset?.symbol || '',
+                    usdValue: usdValue
+                });
+
+            }
+
+
         }
 
         

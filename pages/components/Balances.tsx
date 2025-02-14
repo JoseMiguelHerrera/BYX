@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ChainMetadata } from '../api/mockDB';
 import { getAccessToken } from "@privy-io/react-auth";
 
 interface BalanceData {
@@ -14,6 +13,7 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchBalances = async () => {
+    if (isLoading) return; // Prevent concurrent fetches
     setIsLoading(true);
     try {
       const accessToken = await getAccessToken();
@@ -26,9 +26,9 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
         body: JSON.stringify({ address: smartWalletAddress }),
       });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch balances');
-        }
+      if (!response.ok) {
+        throw new Error('Failed to fetch balances');
+      }
 
       const data = await response.json();
       setBalances(data.balances);
@@ -43,7 +43,7 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
     if (smartWalletAddress) {
       fetchBalances();
     }
-  }, [smartWalletAddress]);
+  }, [smartWalletAddress]); // This will run once when mounted and when smartWalletAddress changes
 
   return (
     <main className="w-full flex items-center justify-center bg-[#1C1C1C]">

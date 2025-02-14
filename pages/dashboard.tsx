@@ -1,24 +1,9 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getAccessToken, usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import Head from "next/head";
 import Funding from "./components/Funding";
 import Balances from "./components/Balances";
-
-async function getBalance(address: string) {
-  console.log("sending address", address)
-  const url = "/api/balances";
-  const accessToken = await getAccessToken();
-  const result = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
-    },
-    body: JSON.stringify({ address: address }),
-  });
-  return await result.json();
-}
 
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState('dashboard');
@@ -45,12 +30,16 @@ export default function DashboardPage() {
     <>
       <Head>
         <title>FracFi</title>
+        <link rel="icon" href="/logos/fractality.svg" type="image/svg+xml" />
       </Head>
 
       <div className="h-screen flex flex-col">
         <nav className="bg-violet-800 px-4 sm:px-20 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-white">FracFi</h1>
+            <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
+              <img src="/logos/fractality.svg" alt="FracFi Logo" className="w-6 h-6" />
+              FracFi
+            </h1>
             {ready && authenticated && (
               <div className="flex gap-4 items-center">
                 <div 
