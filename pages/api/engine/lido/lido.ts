@@ -47,13 +47,13 @@ export async function createLidoSubmitTransaction(lidoContractAddress: string, u
       // Define EIP-712 Types
       const types = {
         Transaction: [
-            { name: "to", type: "address" },
-            { name: "value", type: "uint256" },
-            { name: "gas", type: "uint256" },
-            { name: "nonce", type: "uint256" },
-            { name: "data", type: "bytes" },
+          { name: "to", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "gas", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "data", type: "bytes" },
         ],
-    };
+      }
 
     // Define Message
     const message = {

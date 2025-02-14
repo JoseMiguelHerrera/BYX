@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import InvestInOpportunityModal from './InvestInOpportunityModal';
 import { getAccessToken } from "@privy-io/react-auth";
+import { useWallets } from "@privy-io/react-auth";
+import { Address, createWalletClient, http } from "viem";
+import { getViemChain } from '../api/engine/chainPicker';
 
 export interface Asset {
   name: string;
@@ -68,6 +71,9 @@ export default function Opportunities({smartWalletAddress}: {smartWalletAddress:
     setSelectedOpportunity(null);
   };
 
+  const { wallets } = useWallets();
+
+
   const handleInvestSubmit = async (amounts: Record<string, string>) => {
     if (!selectedOpportunity) return;
 
@@ -95,9 +101,31 @@ export default function Opportunities({smartWalletAddress}: {smartWalletAddress:
         throw new Error('Failed to get transaction');
       }
 
-      const transaction = await response.json();
-      console.log('Transaction:', transaction);
-      // TODO: Handle the transaction with wallet
+      const res = await response.json();
+      const { domain, types, message } = res.transaction;
+      console.log("deconstructing transaction");
+      console.log(domain, types, message);
+      if (!domain || !types || !message) throw new Error("Invalid transaction data");
+
+      const smartWallet = wallets.find(wallet => wallet.address === smartWalletAddress);
+      if(!smartWallet) throw new Error("Smart wallet not found");
+
+      const provider = await smartWallet.getEthereumProvider();
+      console.log("provider", provider);
+      
+      //FIx with https://docs.privy.io/guide/swift/embedded/signatures
+      let signature = await provider.request(
+        {
+            method: "eth_signTypedData_v4",
+            params: [
+                smartWalletAddress, // Signer address must be first!
+                JSON.stringify({ domain, types, message }), // Convert to JSON string
+              ],
+        }
+    )
+
+    console.log("Signed EIP-712 Transaction:", signature);
+      
       
     } catch (error) {
       console.error('Error getting transaction:', error);

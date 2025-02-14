@@ -1,10 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createPublicClient, http, Address,Chain, formatUnits, getContract, Transaction } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
-import { Asset, moc, TokenInputkChains, mockOpportunities, TokenInput } from "./mockDB";
-import { getViemChain } from "./engine/chainPicker";
-import { erc20ABI } from "./abis";
-import { OpportunityData } from "./mockDB";
+import { mockOpportunities, TokenInput } from "./mockDB";
 import { createTransaction } from "./engine";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
@@ -24,32 +20,6 @@ async function getOpportunityData(opportunityId: string){
     return mockOpportunities.find(opportunity => opportunity.id === opportunityId);
 }
 
-async function getNativeAssetBalance(address: Address, viemChain: Chain) {
-    const client = createPublicClient({
-        chain: viemChain,
-        transport: http(), // Use default RPC
-    });
-
-    const balance = await client.getBalance({ address });
-    return formatUnits(balance, viemChain.nativeCurrency.decimals);
-}
-
-async function getERC20Balance(address: Address, viemChain: Chain, assetAddress: string) {
-    const client = createPublicClient({
-        chain: viemChain,
-        transport: http(), // Use default RPC
-    });
-
-    const contract = getContract({
-        address: assetAddress as Address,
-        abi: erc20ABI,
-        client: client,
-    });
-
-    const balance = await contract.read.balanceOf([address]);
-    const decimals = await contract.read.decimals();
-    return formatUnits(balance, decimals);
-}
 
 async function handler(
     req: NextApiRequest,
