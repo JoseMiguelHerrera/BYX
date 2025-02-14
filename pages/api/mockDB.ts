@@ -11,6 +11,11 @@ export interface ChainMetadata {
     address: string|null;
     priceUSD: number;
   }
+
+  export interface TokenInput {
+    asset: Asset;
+    amount: string;
+}
   
   export const mockChains: ChainMetadata[] = [
     {
@@ -22,7 +27,7 @@ export interface ChainMetadata {
           symbol: 'ETH',
           isNative: true,
           address: null,
-          priceUSD: 27000
+          priceUSD: 2700
         },
       ],
     },
@@ -35,7 +40,7 @@ export interface ChainMetadata {
                 symbol: 'ETH',
                 isNative: true,
                 address: null,
-                priceUSD: 27000
+                priceUSD: 2700
             },
             {
                 name: 'USDC',
@@ -43,6 +48,19 @@ export interface ChainMetadata {
                 isNative: false,
                 address: "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
                 priceUSD: 1.00
+            }
+        ],
+      },
+      {
+        id: 'ethereum-holesky',
+        name: 'Ethereum Holesky',
+        assets: [
+            {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                isNative: true,
+                address: null,
+                priceUSD: 2700
             }
         ],
       },
@@ -55,7 +73,7 @@ export interface ChainMetadata {
             symbol: 'ETH',
             isNative: true,
             address: null,
-            priceUSD: 27000
+            priceUSD: 2700
         },
       ],
     },
@@ -68,7 +86,7 @@ export interface ChainMetadata {
                 symbol: 'ETH',
                 isNative: true,
                 address: null,
-                priceUSD: 27000
+                priceUSD: 2700
             },
         ],
       },
@@ -81,7 +99,7 @@ export interface ChainMetadata {
             symbol: 'ETH',
             isNative: true,
             address: null,
-            priceUSD: 27000
+            priceUSD: 2700
         },
       ],
     },
@@ -94,7 +112,7 @@ export interface ChainMetadata {
                 symbol: 'ETH',
                 isNative: true,
                 address: null,
-                priceUSD: 27000
+                priceUSD: 2700
             },
             {
                 name: 'USDC',
@@ -132,4 +150,40 @@ export interface ChainMetadata {
         ],
       },
   ];
+
+
+  export interface OpportunityData {
+    id: string;
+    name: string;
+    chain: string;
+    inputAssets: Asset[];
+    apy: number;
+    enabled: boolean;
+    type: 'Lending' | 'LP' | 'Staking';
+    protocol: string;
+    contractAddress: string;
+  }
+  
+  export const mockOpportunities: OpportunityData[] = [
+    {
+     id: "1",
+      name: "ETH Staking",
+      chain: "ethereum-holesky",
+      inputAssets: [{
+        name: 'Ethereum',
+        symbol: 'ETH',
+        isNative: true,
+        address: null,
+        priceUSD: 2700
+      }],
+      apy: 4.8,
+      enabled: true,
+      type: "Staking",
+      protocol: "Lido",
+      contractAddress: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
+    },
+  ];
+  
+
+
 

@@ -1,15 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createPublicClient, http, Address,Chain, formatUnits, getContract } from "viem";
+import { createPublicClient, http, Address,Chain, formatUnits, getContract, Transaction } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
-import { mockChains } from "./mockDB";
+import { Asset, moc, TokenInputkChains, mockOpportunities, TokenInput } from "./mockDB";
 import { getViemChain } from "./engine/chainPicker";
 import { erc20ABI } from "./abis";
+import { OpportunityData } from "./mockDB";
+import { createTransaction } from "./engine";
+
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 
 export type BalanceSuccessResponse = {
-    balances: {chain: string, balance: string, symbol: string, usdValue: number}[];
+    transaction: any;
 };
 
 export type BalanceErrorResponse = {
@@ -17,8 +20,8 @@ export type BalanceErrorResponse = {
 };
 
 //will be from db at some point
-async function getChainData(){
-    return mockChains;
+async function getOpportunityData(opportunityId: string){
+    return mockOpportunities.find(opportunity => opportunity.id === opportunityId);
 }
 
 async function getNativeAssetBalance(address: Address, viemChain: Chain) {
@@ -56,46 +59,26 @@ async function handler(
 ) {
     const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
     const cookieAuthToken = req.cookies["privy-token"];
-    const address = req.body.address;
-   
+    const body = req.body;
+
+    const smartWalletAddress = body.smartWalletAddress;
+    const opportunityId = body.opportunityId;
+    const tokenInputs = body.tokenInputs as TokenInput[];
+    //const amount = body.amount;//TODO: make so amounts are an array
+
     const authToken = cookieAuthToken || headerAuthToken;
     if (!authToken) return res.status(401).json({ error: "Missing auth token" });
     try {
         await client.verifyAuthToken(authToken);
+        const opportunity = await getOpportunityData(opportunityId);
+        if(!opportunity) return res.status(404).json({ error: "Opportunity not found" });
+        if(!tokenInputs[0]) return res.status(404).json({ error: "Token input not found" });
+        const tx = await createTransaction(opportunity, smartWalletAddress,tokenInputs );
 
-        const chainsMetadata = await getChainData();
-
-        let balances: {chain: string, balance: string, symbol: string, usdValue: number}[] = [];
-        for(const chainMetadata of chainsMetadata){
-            const viemChain = getViemChain(chainMetadata.id);
-
-            for(const asset of chainMetadata.assets){
-
-                let balance: string;
-                if(asset.isNative){
-                    balance = await getNativeAssetBalance(address,viemChain);
-                } else {
-                    if(!asset.address) continue;
-                    balance = await getERC20Balance(address,viemChain,asset.address);
-                }
-
-                const usdValue = asset.priceUSD ? parseFloat(balance) * asset.priceUSD : 0;
-
-                balances.push({
-                    chain: chainMetadata.name, 
-                    balance: balance.toString(), 
-                    symbol: asset?.symbol || '',
-                    usdValue: usdValue
-                });
-
-            }
-
-
-        }
-
-        
-        return res.status(200).json({ balances: balances });
+        console.log(tx);
+        return res.status(200).json({transaction: tx});
     } catch (e: any) {
+        console.log(e);
         return res.status(500).json({ error: e.message });
     }
 
