@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getAccessToken, usePrivy } from "@privy-io/react-auth";
 import Head from "next/head";
 import Funding from "./components/Funding";
-
+import Balances from "./components/Balances";
 
 async function getBalance(address: string) {
   console.log("sending address", address)
@@ -21,8 +21,7 @@ async function getBalance(address: string) {
 }
 
 export default function DashboardPage() {
-  const [verifyResult, setVerifyResult] = useState();
-  const [balance, setBalance] = useState<string>();
+  const [activeView, setActiveView] = useState('dashboard');
   const router = useRouter();
   const {
     ready,
@@ -36,25 +35,11 @@ export default function DashboardPage() {
     }
   }, [ready, authenticated, router]);
 
-  const numAccounts = user?.linkedAccounts?.length || 0;
-  const wallet = user?.wallet;
   let smartWallet = null;
 
   if(user && user.linkedAccounts.length > 1) {
     smartWallet = (user?.linkedAccounts[1] as any).address
   }
-
-
-  
-  useEffect(() => {
-    if (smartWallet) {
-      console.log(smartWallet)
-      getBalance(smartWallet).then((balance) => {
-        console.log(balance)
-        setBalance(balance.balance)
-      });
-    }
-  }, [smartWallet]);
 
   return (
     <>
@@ -106,12 +91,29 @@ export default function DashboardPage() {
           <div className="w-64 bg-violet-900 p-4">
             <div className="flex flex-col gap-3">
               <button
-                onClick={()=>{}}
-                className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
+                onClick={() => setActiveView('dashboard')}
+                className={`text-sm ${
+                  activeView === 'dashboard' ? 'bg-violet-700' : 'bg-violet-600'
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
+              >
+                Funding Balances
+              </button>
+              <button
+                onClick={() => setActiveView('funding')}
+                className={`text-sm ${
+                  activeView === 'funding' ? 'bg-violet-700' : 'bg-violet-600'
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
               >
                 Funding
               </button>
-              {/* Additional buttons can be added here */}
+              <button
+                onClick={() => setActiveView('opportunities')}
+                className={`text-sm ${
+                  activeView === 'opportunities' ? 'bg-violet-700' : 'bg-violet-600'
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
+              >
+                Opportunities
+              </button>
             </div>
           </div>
 
@@ -120,7 +122,13 @@ export default function DashboardPage() {
             {ready && authenticated ? (
               <>
                 <div className="mt-12 flex gap-4 flex-wrap">
-                  <Funding smartWalletAddress={smartWallet} />
+                  {activeView === 'funding' ? (
+                    <Funding smartWalletAddress={smartWallet} />
+                  ) : activeView === 'opportunities' ? (
+                    <div>Opportunities Content Here</div>
+                  ) : (
+                    <Balances smartWalletAddress={smartWallet} />
+                  )}
                 </div>
               </>
             ) : null}
