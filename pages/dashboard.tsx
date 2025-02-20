@@ -24,7 +24,10 @@ export default function DashboardPage() {
   let smartWallet = null;
 
   if(user && user.linkedAccounts.length > 1) {
-    smartWallet = (user?.linkedAccounts[1] as any).address
+    let smartAccount = user.linkedAccounts.find((account) => account.type === 'smart_wallet')
+   if(smartAccount){
+    smartWallet = smartAccount.address
+   }
   }
 
   return (
@@ -113,11 +116,11 @@ export default function DashboardPage() {
               <>
                 <div className="mt-12 flex gap-4 flex-wrap">
                   {activeView === 'funding' ? (
-                    <Funding smartWalletAddress={smartWallet} />
+                    <Funding smartWalletAddress={smartWallet || ''} />
                   ) : activeView === 'opportunities' ? (
-                    <Opportunities smartWalletAddress={smartWallet} />
+                    <Opportunities smartWalletAddress={smartWallet || ''} />
                   ) : (
-                    <Balances smartWalletAddress={smartWallet} />
+                    <Balances smartWalletAddress={smartWallet || ''} />
                   )}
                 </div>
               </>

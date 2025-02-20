@@ -168,7 +168,7 @@ export interface ChainMetadata {
     {
      id: "1",
       name: "ETH Staking",
-      chain: "ethereum-holesky",
+      chain: "ethereum",
       inputAssets: [{
         name: 'Ethereum',
         symbol: 'ETH',
@@ -180,7 +180,7 @@ export interface ChainMetadata {
       enabled: true,
       type: "Staking",
       protocol: "Lido",
-      contractAddress: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
+      contractAddress: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
     },
   ];
   

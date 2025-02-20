@@ -36,11 +36,31 @@ export async function createLidoSubmitTransaction(lidoContractAddress: string, u
         data
       })
 
+      const maxPriorityFeePerGas = await client.estimateMaxPriorityFeePerGas()
+
+      const transaction = {
+        chainId: viemChain.id,
+        to: lidoContractAddress,
+        value: parseEther(tokenInput.amount).toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+        gas: gasEstimate.toString(),
+        nonce,
+        data
+      }
+
+      const uiOptions = {
+        description: "Submit ETH to lido to get stETH",
+        buttonText: "Submit",
+      }
+
+      /*
+
       // Define EIP-712 Domain
     const domain = {
         name: "Lido",
         version: "1",
         chainId: viemChain.id,
+        salt: "0",//TODO: what is this?
         verifyingContract: lidoContractAddress,
     };
 
@@ -53,6 +73,13 @@ export async function createLidoSubmitTransaction(lidoContractAddress: string, u
           { name: "nonce", type: "uint256" },
           { name: "data", type: "bytes" },
         ],
+        EIP712Domain: [
+            { name: "name", type: "string" },
+            { name: "version", type: "string" },
+            { name: "chainId", type: "uint256" },
+            { name: "salt", type: "string" },
+            { name: "verifyingContract", type: "string" },
+        ]   
       }
 
     // Define Message
@@ -67,4 +94,10 @@ export async function createLidoSubmitTransaction(lidoContractAddress: string, u
 
     return { domain, types, message };
 
+*/
+
+return {transaction, uiOptions};
 }
+
+
+///add a verifiy function here like so https://viem.sh/docs/utilities/verifyTypedData.html

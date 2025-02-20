@@ -96,6 +96,7 @@ async function handler(
         
         return res.status(200).json({ balances: balances });
     } catch (e: any) {
+        console.log(e);
         return res.status(500).json({ error: e.message });
     }
 

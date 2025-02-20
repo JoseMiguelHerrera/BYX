@@ -2,8 +2,10 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { SmartWalletsProvider,SmartWalletsProviderProps } from '@privy-io/react-auth/smart-wallets';
 
 function MyApp({ Component, pageProps }: AppProps) {
+
   return (
     <>
       <Head>
@@ -47,7 +49,11 @@ function MyApp({ Component, pageProps }: AppProps) {
           },
         }}
       >
-        <Component {...pageProps} />
+        <SmartWalletsProvider
+        >
+          <Component {...pageProps} />
+        </SmartWalletsProvider>
+
       </PrivyProvider>
     </>
   );
