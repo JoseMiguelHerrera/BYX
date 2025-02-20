@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy,useWallets } from "@privy-io/react-auth";
 import Head from "next/head";
 import Funding from "./components/Funding";
 import Balances from "./components/Balances";
@@ -21,14 +21,9 @@ export default function DashboardPage() {
     }
   }, [ready, authenticated, router]);
 
-  let smartWallet = null;
+  const { wallets } = useWallets();
 
-  if(user && user.linkedAccounts.length > 1) {
-    let smartAccount = user.linkedAccounts.find((account) => account.type === 'smart_wallet')
-   if(smartAccount){
-    smartWallet = smartAccount.address
-   }
-  }
+  const embeddedWallet = wallets.find((wallet) => wallet.walletClientType === 'privy');
 
   return (
     <>
@@ -48,14 +43,14 @@ export default function DashboardPage() {
               <div className="flex gap-4 items-center">
                 <div 
                   className="text-sm bg-violet-200 py-2 px-4 rounded-md text-violet-700 cursor-pointer relative group flex items-center gap-2"
-                  title={smartWallet || 'No wallet connected'}
+                  title={embeddedWallet?.address || 'No wallet connected'}
                 >
-                  Smart Wallet Address: {smartWallet ? `${smartWallet.slice(0, 6)}...${smartWallet.slice(-4)}` : 'No wallet connected'}
-                  {smartWallet && (
+                  BYX Wallet Address: {embeddedWallet ? `${embeddedWallet?.address.slice(0, 6)}...${embeddedWallet?.address.slice(-4)}` : 'No wallet connected'}
+                  {embeddedWallet && (
                     <>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(smartWallet);
+                          navigator.clipboard.writeText(embeddedWallet?.address);
                         }}
                         className="hover:text-violet-900"
                         title="Copy address"
@@ -63,7 +58,7 @@ export default function DashboardPage() {
                         📋
                       </button>
                       <div className="absolute hidden group-hover:block bg-gray-900 text-white p-2 rounded-md text-xs whitespace-nowrap -bottom-10 left-1/2 transform -translate-x-1/2">
-                        {smartWallet}
+                        {embeddedWallet?.address}
                       </div>
                     </>
                   )}
@@ -116,11 +111,11 @@ export default function DashboardPage() {
               <>
                 <div className="mt-12 flex gap-4 flex-wrap">
                   {activeView === 'funding' ? (
-                    <Funding smartWalletAddress={smartWallet || ''} />
+                    <Funding smartWalletAddress={embeddedWallet?.address || ''} />
                   ) : activeView === 'opportunities' ? (
-                    <Opportunities smartWalletAddress={smartWallet || ''} />
+                    <Opportunities smartWalletAddress={embeddedWallet?.address || ''} />
                   ) : (
-                    <Balances smartWalletAddress={smartWallet || ''} />
+                    <Balances smartWalletAddress={embeddedWallet?.address || ''} />
                   )}
                 </div>
               </>

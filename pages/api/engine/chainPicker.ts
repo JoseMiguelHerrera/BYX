@@ -1,4 +1,4 @@
-import { arbitrum, arbitrumSepolia, base, baseSepolia, berachain, berachainTestnet, mainnet, sepolia,holesky,Chain } from 'viem/chains'//hard coded for now
+import { arbitrum, arbitrumSepolia, base, baseSepolia, berachain, berachainTestnetbArtio, mainnet, sepolia,holesky,Chain } from 'viem/chains'//hard coded for now
 
 export function getViemChain(chainId: string): Chain {
     switch(chainId) {
@@ -19,7 +19,7 @@ export function getViemChain(chainId: string): Chain {
      case 'berachain':
          return berachain;
      case 'berachain-testnet':
-         return berachainTestnet;
+         return berachainTestnetbArtio;
     }
     throw new Error('Invalid chain');
    };
