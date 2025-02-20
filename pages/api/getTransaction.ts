@@ -43,10 +43,9 @@ async function handler(
         const opportunity = await getOpportunityData(opportunityId);
         if(!opportunity) return res.status(404).json({ error: "Opportunity not found" });
         if(!tokenInputs[0]) return res.status(404).json({ error: "Token input not found" });
-        const tx = await createTransaction(opportunity, smartWalletAddress,tokenInputs );
+        const txHash = await createTransaction(opportunity, smartWalletAddress,tokenInputs );
 
-        console.log(tx);
-        return res.status(200).json({transaction: tx});
+        return res.status(200).json({transaction: txHash});
     } catch (e: any) {
         console.log(e);
         return res.status(500).json({ error: e.message });

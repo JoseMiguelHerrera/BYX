@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import InvestInOpportunityModal from './InvestInOpportunityModal';
-import { getAccessToken } from "@privy-io/react-auth";
-import { useSmartWallets } from '@privy-io/react-auth/smart-wallets';
-import {useDelegatedActions,useWallets} from '@privy-io/react-auth';
+import { getAccessToken, WalletWithMetadata } from "@privy-io/react-auth";
+import { useDelegatedActions,usePrivy } from '@privy-io/react-auth';
+import { toast } from 'react-toastify';
 
 export interface Asset {
     name: string;
@@ -25,12 +25,20 @@ export interface OpportunityData {
 }
 
 export default function Opportunities({ smartWalletAddress }: { smartWalletAddress: string }) {
+    const {user} = usePrivy();
     const [opportunities, setOpportunities] = useState<OpportunityData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityData | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { client,getClientForChain, } = useSmartWallets();
+   // const { client, getClientForChain, } = useSmartWallets();
+    const {delegateWallet} = useDelegatedActions();
 
+
+      // Check if the wallet to delegate by inspecting the user's linked accounts
+  const isAlreadyDelegated = !!user?.linkedAccounts.find(
+    (account): account is WalletWithMetadata => account.type === 'wallet' && account.delegated,
+  );
+   
     const fetchOpportunities = async () => {
         if (isLoading) return;
         setIsLoading(true);
@@ -57,8 +65,15 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
         }
     };
 
+    const delegate = async () => {
+        if(!isAlreadyDelegated){
+            await delegateWallet({address: smartWalletAddress, chainType: 'ethereum'}); // or chainType: 'ethereum'
+        }
+    }
+
     useEffect(() => {
         fetchOpportunities();
+        delegate()
     }, []);
 
     const handleInvest = (opportunity: OpportunityData) => {
@@ -119,88 +134,16 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
             }
 
             const res = await response.json();
-            //const { domain, types, message } = res.transaction;
-            //console.log("deconstructing transaction");
-            //console.log(domain, types, message);
-            //if (!domain || !types || !message) throw new Error("Invalid transaction data");
-
-            //const smartWallet = wallets.find(wallet => wallet.address === smartWalletAddress);
-            //if (!smartWallet) throw new Error("Smart wallet not found");
-
-            //const signature = await eip712Sign(domain, types, message);
-
-            
-            console.log(res.transaction.transaction)
-
-            const chainClient=await getClientForChain({id: res.transaction.transaction.chainId})
-
-            const chainClientArbTestnet=await getClientForChain({id: 421_614})
 
 
+            if(res.transaction){
+                const txHash=res.transaction;
+                toast.success(`Transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
+            }else{
+                console.error(res.error)
+                toast.error(`Transaction failed`);
+            }
 
-
-
-
-            await chainClient?.sendTransaction({
-                account: chainClient.account,
-                calls: [{
-                    to: res.transaction.transaction.to,
-                    value: res.transaction.transaction.value,
-                    data: res.transaction.transaction.data,
-                },
-                {//simple send to myself
-                    to: "0x10cB01F132E66d007438DDE1c6983c1b522B4462",
-                    value: res.transaction.transaction.value,
-                }
-            ]
-            }, { uiOptions: {
-                description: res.transaction.uiOptions.description,
-                buttonText: res.transaction.uiOptions.buttonText,
-            } })
-
-
-            await chainClientArbTestnet?.sendTransaction({
-                account: chainClientArbTestnet.account,
-                calls: [{//simple send to myself
-                    to: "0x10cB01F132E66d007438DDE1c6983c1b522B4462",
-                    value: BigInt("5000000000000000"),
-                }
-            ]
-            })
-
-        
-
-            //await client?.sendTransaction()
-            /*
-            await smartWallet.sendTransaction({
-                to: message.to,
-                value: message.value,
-                data: message.data,
-                gasLimit: message.gas,
-                gasPrice: message.gasPrice,
-                nonce: message.nonce,
-                chainId: message.chainId,
-            });
-            */
-
-            /*
-      
-            const provider = await smartWallet.getEthereumProvider();
-            console.log("provider", provider);
-            
-            //FIx with https://docs.privy.io/guide/swift/embedded/signatures
-            let signature = await provider.request(
-              {
-                  method: "eth_signTypedData_v4",
-                  params: [
-                      smartWalletAddress, // Signer address must be first!
-                      JSON.stringify({ domain, types, message }), // Convert to JSON string
-                    ],
-              }
-          )
-          */
-
-            // console.log("Signed EIP-712 Transaction:", signature);
 
 
         } catch (error) {
