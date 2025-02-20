@@ -97,3 +97,15 @@ export const erc20ABI = [
     ],
   },
 ] as const;
+
+
+
+export const lidoABI = [
+    {
+      type: 'function',
+      name: 'submit',
+      stateMutability: 'payable',
+      inputs: [{ name: '_referral', type: 'address' }],
+      outputs: [{ name: 'shares', type: 'uint256' }],
+    },
+  ];

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { arbitrumSepolia,arbitrum,sepolia,mainnet,base,baseSepolia,berachain,berachainTestnet} from 'viem/chains'//hard coded for now
 import { useFundWallet } from "@privy-io/react-auth";
+import { getViemChain } from '../api/engine/chainPicker';
 
 interface Asset {
   name: string;
@@ -17,33 +18,7 @@ interface Chain {
 
 function generateFundingObject(chain: Chain, asset: Asset) {
     console.log(chain,asset);
-   let viemChain;
-   switch(chain.id) {
-    case 'arbitrum-sepolia':
-        viemChain = arbitrumSepolia;
-        break;
-    case 'arbitrum':
-        viemChain = arbitrum;
-        break;
-    case 'ethereum-sepolia':
-        viemChain = sepolia;
-        break;
-    case 'ethereum':
-        viemChain = mainnet;
-        break;
-    case 'base':
-        viemChain = base;
-        break;
-    case 'base-sepolia':
-        viemChain = baseSepolia;
-        break;
-    case 'berachain':
-        viemChain = berachain;
-        break;
-    case 'berachain-testnet':
-        viemChain = berachainTestnet;
-        break;
-   }
+   let viemChain = getViemChain(chain.id);
 
    let assetConfig: string | {erc20: string};
    if(asset.isNative) {
@@ -60,10 +35,6 @@ function generateFundingObject(chain: Chain, asset: Asset) {
     asset: assetConfig
    }
   };
-
-
-
-
 
 export default function Funding({ smartWalletAddress }: { smartWalletAddress: string }) {
   const [chains, setChains] = useState<Chain[]>([]);

@@ -4,6 +4,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import Head from "next/head";
 import Funding from "./components/Funding";
 import Balances from "./components/Balances";
+import Opportunities from "./components/Opportunities";
 
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState('dashboard');
@@ -23,13 +24,16 @@ export default function DashboardPage() {
   let smartWallet = null;
 
   if(user && user.linkedAccounts.length > 1) {
-    smartWallet = (user?.linkedAccounts[1] as any).address
+    let smartAccount = user.linkedAccounts.find((account) => account.type === 'smart_wallet')
+   if(smartAccount){
+    smartWallet = smartAccount.address
+   }
   }
 
   return (
     <>
       <Head>
-        <title>FracFi</title>
+        <title>BYX: Blockhain Yield Exchange</title>
         <link rel="icon" href="/logos/fractality.svg" type="image/svg+xml" />
       </Head>
 
@@ -38,7 +42,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
               <img src="/logos/fractality.svg" alt="FracFi Logo" className="w-6 h-6" />
-              FracFi
+              BYX: Blockchain Yield Exchange
             </h1>
             {ready && authenticated && (
               <div className="flex gap-4 items-center">
@@ -112,11 +116,11 @@ export default function DashboardPage() {
               <>
                 <div className="mt-12 flex gap-4 flex-wrap">
                   {activeView === 'funding' ? (
-                    <Funding smartWalletAddress={smartWallet} />
+                    <Funding smartWalletAddress={smartWallet || ''} />
                   ) : activeView === 'opportunities' ? (
-                    <div>Opportunities Content Here</div>
+                    <Opportunities smartWalletAddress={smartWallet || ''} />
                   ) : (
-                    <Balances smartWalletAddress={smartWallet} />
+                    <Balances smartWalletAddress={smartWallet || ''} />
                   )}
                 </div>
               </>
