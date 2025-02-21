@@ -31,8 +31,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
     const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityData | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
    // const { client, getClientForChain, } = useSmartWallets();
-    const {delegateWallet} = useDelegatedActions();
-
+    const {delegateWallet,revokeWallets} = useDelegatedActions();
 
       // Check if the wallet to delegate by inspecting the user's linked accounts
   const isAlreadyDelegated = !!user?.linkedAccounts.find(
@@ -67,7 +66,13 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
 
     const delegate = async () => {
         if(!isAlreadyDelegated){
-            await delegateWallet({address: smartWalletAddress, chainType: 'ethereum'}); // or chainType: 'ethereum'
+
+            try{
+                await delegateWallet({address: smartWalletAddress, chainType: 'ethereum'}); // or chainType: 'ethereum'
+            }catch(e){
+                toast.error(`Failed to delegate wallet`);
+            }
+
         }
     }
 
@@ -77,6 +82,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
     }, []);
 
     const handleInvest = (opportunity: OpportunityData) => {
+        delegate();
         setSelectedOpportunity(opportunity);
         setIsModalOpen(true);
     };
@@ -248,6 +254,16 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                     </table>
                 </div>
             </div>
+            {isAlreadyDelegated && (
+                <div className="absolute bottom-[-40px] left-8">
+                    <button
+                        onClick={() => revokeWallets()}
+                        className="py-1 px-3 text-sm rounded bg-red-600 hover:bg-red-700 text-white"
+                    >
+                        Remove Privy Approval
+                    </button>
+                </div>
+            )}
             <InvestInOpportunityModal
                 isOpen={isModalOpen}
                 onClose={handleModalClose}

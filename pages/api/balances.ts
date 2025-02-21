@@ -71,6 +71,7 @@ async function handler(
 
             for(const asset of chainMetadata.assets){
 
+                try{
                 let balance: string;
                 if(asset.isNative){
                     balance = await getNativeAssetBalance(address,viemChain);
@@ -87,6 +88,15 @@ async function handler(
                     symbol: asset?.symbol || '',
                     usdValue: usdValue
                 });
+            }catch(e){
+                console.log(`error getting balance for ${asset.symbol} on ${chainMetadata.name}`)
+                balances.push({
+                    chain: chainMetadata.name, 
+                    balance: 'N/A', 
+                    symbol: asset?.symbol || '',
+                    usdValue: 0
+                });
+            }
 
             }
 
