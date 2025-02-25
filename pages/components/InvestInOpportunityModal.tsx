@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { OpportunityData, Asset } from './Opportunities';
+import { OpportunityData } from './Opportunities';
 
 interface InvestInOpportunityModalProps {
   isOpen: boolean;

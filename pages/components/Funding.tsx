@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { arbitrumSepolia,arbitrum,sepolia,mainnet,base,baseSepolia,berachain,berachainTestnet} from 'viem/chains'//hard coded for now
 import { useFundWallet } from "@privy-io/react-auth";
 import { getViemChain } from '../api/engine/chainPicker';
 
