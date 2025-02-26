@@ -30,6 +30,16 @@ export interface TokenInput {
   amount: string;
 }
 
+export enum TransactionType {
+  Invest = 'invest',
+  Divest = 'divest',
+  RequestDivest = 'requestDivest'
+}
+
+export interface OpportunityContract {
+  contractAddress: string;
+  type: 'invest' | 'divest'
+}
 
 export interface OpportunityData {
   id: string;
@@ -42,7 +52,7 @@ export interface OpportunityData {
   immediateWithdrawal: boolean;
   type: 'Lending' | 'LP' | 'Staking';
   protocol: string;
-  contractAddress: string;
+  contracts: OpportunityContract[];
 }
 
 const ETH = {
@@ -191,7 +201,16 @@ export const mockOpportunities: OpportunityData[] = [
       immediateWithdrawal: false,
       type: "Staking",
       protocol: "Lido",
-      contractAddress: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
+      contracts: [
+        {
+          contractAddress: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+          type: "invest"
+        },
+        {
+          contractAddress: "0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1",
+          type: "divest"
+        }
+      ]
   },
   {
       id: "2",
@@ -204,6 +223,11 @@ export const mockOpportunities: OpportunityData[] = [
       immediateWithdrawal: true,
       type: "LP",
       protocol: "Uniswap",
-      contractAddress: ""
+      contracts: [
+        {
+          contractAddress: "",
+          type: "invest"
+        }
+      ]
   },
 ];

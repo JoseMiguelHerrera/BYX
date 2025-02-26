@@ -2,6 +2,7 @@ import { PrivyClient } from '@privy-io/server-auth';
 import dotenv from 'dotenv';
 dotenv.config();
 
+
 export default class ServerSideTransactions {
     private client: PrivyClient;
     constructor() {
@@ -15,18 +16,26 @@ export default class ServerSideTransactions {
           });
     }
 
-    async sendTransaction(userAddress: string, transaction: any) {
-        const {hash} = await this.client.walletApi.ethereum.sendTransaction({
-            address: userAddress,
-            chainType: 'ethereum',
-            caip2: `eip155:${transaction.chainId}`,
-            transaction: transaction
-          });
+    async sendTransactions(userAddress: string, transactions: any[]) {
+        let hashes:string[] = [];
 
-          return hash;
+        for(const tx of transactions){
+          console.log(tx)
+            const {hash} = await this.client.walletApi.ethereum.sendTransaction({
+                address: userAddress,
+                chainType: 'ethereum',
+                caip2: `eip155:${tx.transaction.chainId}`,
+                transaction: tx.transaction
+            });
+            await tx.wait({
+              hash: hash as `0x${string}`,
+          });          
+            console.log(`Sent transaction ${hash}`);
+            hashes.push(hash);
+        }
+
+        return hashes;
     }
       
-
-
 }
 

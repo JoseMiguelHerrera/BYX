@@ -100,7 +100,7 @@ export const erc20ABI = [
 
 
 
-export const lidoABI = [
+export const lidoSubmitABI = [
     {
       type: 'function',
       name: 'submit',
@@ -109,3 +109,32 @@ export const lidoABI = [
       outputs: [{ name: 'shares', type: 'uint256' }],
     },
   ];
+
+  export const lidoRequestWithdrawalABI = [
+    {
+      type: "function",
+      name: "requestWithdrawals",
+      stateMutability: "nonpayable",
+      inputs: [
+        {
+          internalType: "uint256[]",
+          name: "_amounts",
+          type: "uint256[]"
+        },
+        {
+          internalType: "address", 
+          name: "_owner",
+          type: "address"
+        }
+      ],
+      outputs: [
+        {
+          internalType: "uint256[]",
+          name: "requestIds",
+          type: "uint256[]"
+        }
+      ],
+    },
+  ];
+  
+  

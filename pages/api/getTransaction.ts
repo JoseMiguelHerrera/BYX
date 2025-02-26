@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
-import { mockOpportunities, TokenInput } from "./mockDB";
+import { mockOpportunities, TokenInput, TransactionType } from "./mockDB";
 import { createTransaction } from "./engine";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
@@ -34,7 +34,7 @@ async function handler(
     const smartWalletAddress = body.smartWalletAddress;
     const opportunityId = body.opportunityId;
     const tokenInputs = body.tokenInputs as TokenInput[];
-    //const amount = body.amount;//TODO: make so amounts are an array
+    const type = body.type as TransactionType;
 
     const authToken = cookieAuthToken || headerAuthToken;
     if (!authToken) return res.status(401).json({ error: "Missing auth token" });
@@ -43,7 +43,7 @@ async function handler(
         const opportunity = await getOpportunityData(opportunityId);
         if(!opportunity) return res.status(404).json({ error: "Opportunity not found" });
         if(!tokenInputs[0]) return res.status(404).json({ error: "Token input not found" });
-        const txHash = await createTransaction(opportunity, smartWalletAddress,tokenInputs );
+        const txHash = await createTransaction(opportunity, smartWalletAddress,tokenInputs,type );
 
         return res.status(200).json({transaction: txHash});
     } catch (e: any) {

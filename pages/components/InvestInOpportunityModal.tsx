@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { OpportunityData } from './Opportunities';
+import { OpportunityData } from '../api/mockDB';
 
 interface InvestInOpportunityModalProps {
   isOpen: boolean;

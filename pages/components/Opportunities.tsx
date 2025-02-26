@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import InvestInOpportunityModal from './InvestInOpportunityModal';
+import DivestFromOpportunityModal from './DivestFromOpportunityModal';
 import { getAccessToken, WalletWithMetadata } from "@privy-io/react-auth";
 import { useDelegatedActions,usePrivy } from '@privy-io/react-auth';
 import { toast } from 'react-toastify';
+import { OpportunityData } from '../api/mockDB';
 
 export interface Asset {
     name: string;
@@ -12,24 +14,14 @@ export interface Asset {
     priceUSD: number;
 }
 
-export interface OpportunityData {
-    id: string;
-    name: string;
-    chain: string;
-    inputAssets: Asset[];
-    apy: number;
-    enabled: boolean;
-    type: 'Lending' | 'LP' | 'Staking';
-    protocol: string;
-    contractAddress: string;
-}
 
 export default function Opportunities({ smartWalletAddress }: { smartWalletAddress: string }) {
     const {user} = usePrivy();
     const [opportunities, setOpportunities] = useState<OpportunityData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityData | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
+    const [isDivestModalOpen, setIsDivestModalOpen] = useState(false);
    // const { client, getClientForChain, } = useSmartWallets();
     const {delegateWallet,revokeWallets} = useDelegatedActions();
 
@@ -84,11 +76,24 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
     const handleInvest = (opportunity: OpportunityData) => {
         delegate();
         setSelectedOpportunity(opportunity);
-        setIsModalOpen(true);
+        setIsInvestModalOpen(true);
     };
 
-    const handleModalClose = () => {
-        setIsModalOpen(false);
+
+    
+    const handleDivest = (opportunity: OpportunityData) => {
+        delegate();
+        setSelectedOpportunity(opportunity);
+        setIsDivestModalOpen(true);
+    };
+
+    const handleInvestModalClose = () => {
+        setIsInvestModalOpen(false);
+        setSelectedOpportunity(null);
+    };
+
+    const handleDivestModalClose = () => {
+        setIsDivestModalOpen(false);
         setSelectedOpportunity(null);
     };
 
@@ -131,7 +136,8 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 body: JSON.stringify({
                     smartWalletAddress: smartWalletAddress,
                     opportunityId: selectedOpportunity.id,
-                    tokenInputs
+                    tokenInputs,
+                    type: 'invest'
                 }),
             });
 
@@ -155,7 +161,101 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
         } catch (error) {
             console.error('Error getting transaction:', error);
         } finally {
-            setIsModalOpen(false);
+            setIsInvestModalOpen(false);
+            setSelectedOpportunity(null);
+        }
+    };
+
+    
+    const handleRequestDivestSubmit = async (amounts: Record<string, string>) => {
+        if (!selectedOpportunity) return;
+
+        try {
+            const accessToken = await getAccessToken();
+            const tokenInputs = selectedOpportunity.outputAssets.map(asset => ({
+                asset,
+                amount: amounts[asset.symbol] || '0'
+            }));
+
+            const response = await fetch('/api/getTransaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
+                },
+                body: JSON.stringify({
+                    smartWalletAddress: smartWalletAddress,
+                    opportunityId: selectedOpportunity.id,
+                    tokenInputs,
+                    type: 'requestDivest'
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get divest transaction');
+            }
+
+            const res = await response.json();
+
+            if(res.transaction){
+                const txHash=res.transaction;
+                toast.success(`Divest transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
+            }else{
+                console.error(res.error)
+                toast.error(`Divest transaction failed`);
+            }
+
+        } catch (error) {
+            console.error('Error getting divest transaction:', error);
+        } finally {
+            setIsDivestModalOpen(false);
+            setSelectedOpportunity(null);
+        }
+    };
+
+    
+    const handleDivestSubmit = async (amounts: Record<string, string>) => {
+        if (!selectedOpportunity) return;
+
+        try {
+            const accessToken = await getAccessToken();
+            const tokenInputs = selectedOpportunity.inputAssets.map(asset => ({
+                asset,
+                amount: amounts[asset.symbol] || '0'
+            }));
+
+            const response = await fetch('/api/getTransaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
+                },
+                body: JSON.stringify({
+                    smartWalletAddress: smartWalletAddress,
+                    opportunityId: selectedOpportunity.id,
+                    tokenInputs,
+                    type: 'divest'
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get divest transaction');
+            }
+
+            const res = await response.json();
+
+            if(res.transaction){
+                const txHash=res.transaction;
+                toast.success(`Divest transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
+            }else{
+                console.error(res.error)
+                toast.error(`Divest transaction failed`);
+            }
+
+        } catch (error) {
+            console.error('Error getting divest transaction:', error);
+        } finally {
+            setIsDivestModalOpen(false);
             setSelectedOpportunity(null);
         }
     };
@@ -237,16 +337,28 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                                         {opportunity.apy.toFixed(2)}%
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                        <button
-                                            onClick={() => handleInvest(opportunity)}
-                                            disabled={!opportunity.enabled}
-                                            className={`py-2 px-4 rounded ${opportunity.enabled
-                                                ? 'bg-violet-600 hover:bg-violet-700 text-white'
-                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                                }`}
-                                        >
-                                            {opportunity.enabled ? 'Invest' : 'Coming Soon'}
-                                        </button>
+                                        <div className="flex justify-end space-x-2">
+                                            <button
+                                                onClick={() => handleInvest(opportunity)}
+                                                disabled={!opportunity.enabled}
+                                                className={`py-2 px-4 rounded ${opportunity.enabled
+                                                    ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                {opportunity.enabled ? 'Invest' : 'Coming Soon'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDivest(opportunity)}
+                                                disabled={!opportunity.enabled}
+                                                className={`py-2 px-4 rounded ${opportunity.enabled
+                                                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                Divest
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -265,10 +377,17 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 </div>
             )}
             <InvestInOpportunityModal
-                isOpen={isModalOpen}
-                onClose={handleModalClose}
+                isOpen={isInvestModalOpen}
+                onClose={handleInvestModalClose}
                 opportunity={selectedOpportunity}
                 onInvest={handleInvestSubmit}
+            />
+            <DivestFromOpportunityModal
+                isOpen={isDivestModalOpen}
+                onClose={handleDivestModalClose}
+                opportunity={selectedOpportunity}
+                onDivest={handleDivestSubmit}
+                onRequestDivest={handleRequestDivestSubmit}
             />
         </main>
     );
