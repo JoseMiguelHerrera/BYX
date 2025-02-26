@@ -8,7 +8,7 @@ export async function createTransaction(opportunity: OpportunityData, userAddres
     let tx:any|null = null;
     switch(opportunity.id) {
         case '1':
-            tx= await createLidoSubmitTransaction(opportunity.contractAddress, userAddress, inputAmounts, opportunity.chain);
+            tx= await createLidoSubmitTransaction(opportunity, userAddress, inputAmounts);
     }
 
     if(!tx) {

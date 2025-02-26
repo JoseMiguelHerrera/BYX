@@ -12,7 +12,6 @@ export default function DashboardPage() {
   const {
     ready,
     authenticated,
-    user,
     logout,
   } = usePrivy();
   useEffect(() => {

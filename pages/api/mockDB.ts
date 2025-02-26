@@ -39,6 +39,7 @@ export interface OpportunityData {
   outputAssets: Asset[];
   apy: number;
   enabled: boolean;
+  immediateWithdrawal: boolean;
   type: 'Lending' | 'LP' | 'Staking';
   protocol: string;
   contractAddress: string;
@@ -187,6 +188,7 @@ export const mockOpportunities: OpportunityData[] = [
       outputAssets: [stETH],
       apy: 4.8,
       enabled: true,
+      immediateWithdrawal: false,
       type: "Staking",
       protocol: "Lido",
       contractAddress: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
@@ -199,6 +201,7 @@ export const mockOpportunities: OpportunityData[] = [
       outputAssets: [USDC_USDT_LP_ARB],
       apy: 2.5,
       enabled: false,
+      immediateWithdrawal: true,
       type: "LP",
       protocol: "Uniswap",
       contractAddress: ""
