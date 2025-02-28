@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAccessToken } from "@privy-io/react-auth";
+import { toast } from 'react-toastify';
 
 interface BalanceData {
   chain: string;
@@ -27,7 +28,7 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch balances');
+        toast.error(`Failed to fetch balances`);
       }
 
       const data = await response.json();

@@ -44,7 +44,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
 
             if (!response.ok) {
                 console.log(response);
-                throw new Error('Failed to fetch opportunities');
+                toast.error(`Failed to fetch defi opportunities`);
             }
             const data = await response.json();
             setOpportunities(data.opportunities);
@@ -97,24 +97,6 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
         setSelectedOpportunity(null);
     };
 
-    /*
-    const eip712Sign = async (domain: any, types: any, message: any) => {
-        try {
-
-            const typedData = { primaryType: 'Transaction', domain: domain, types: types, message: message };
-            const uiOptions = {
-                title: 'Sample title text',
-                description: 'Sample description text',
-                buttonText: 'Sample button text',
-            };
-            const { signature } = await signTypedData(typedData, { uiOptions, address: smartWalletAddress });
-            console.log("signature", signature);
-            return signature;
-        } catch (e) {
-            console.log(e)
-        }
-    }
-    */
 
     const handleInvestSubmit = async (amounts: Record<string, string>) => {
 
@@ -142,7 +124,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
             });
 
             if (!response.ok) {
-                throw new Error('Failed to get transaction');
+                toast.error(`Failed to get transaction`);
             }
 
             const res = await response.json();
@@ -153,7 +135,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 toast.success(`Transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
             }else{
                 console.error(res.error)
-                toast.error(`Transaction failed`);
+                toast.error(`Transaction failed: ${res.error}`);
             }
 
 
@@ -190,11 +172,6 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                     type: 'requestDivest'
                 }),
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to get divest transaction');
-            }
-
             const res = await response.json();
 
             if(res.transaction){
@@ -202,7 +179,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 toast.success(`Divest transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
             }else{
                 console.error(res.error)
-                toast.error(`Divest transaction failed`);
+                toast.error(`Divest transaction failed: ${res.error}`);
             }
 
         } catch (error) {
@@ -213,7 +190,44 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
         }
     };
 
-    
+    //This one is for opportunities that require a request first before divesting
+    const handleCompleteDivest = async (divestmentId: string) => {
+        if (!selectedOpportunity) return;
+
+        try {
+            const accessToken = await getAccessToken();
+
+            const response = await fetch('/api/getTransaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
+                },
+                body: JSON.stringify({
+                    smartWalletAddress: smartWalletAddress,
+                    opportunityId: selectedOpportunity.id,
+                    tokenInputs: [],
+                    type: 'divest',
+                    extraData: [parseInt(divestmentId)]
+                }),
+            });
+
+            const res = await response.json();
+
+            if(res.transaction){
+                const txHash=res.transaction;
+                toast.success(`Divest transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
+            }else{
+                console.error(res.error)
+                toast.error(`Divest transaction failed: ${res.error}`);
+            }
+        }catch(e){
+            console.error(e)
+            toast.error(`Error performing divestment: ${e}`);
+        } 
+    }
+
+    //This one is for opportunities that can divest immediately
     const handleDivestSubmit = async (amounts: Record<string, string>) => {
         if (!selectedOpportunity) return;
 
@@ -238,9 +252,6 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to get divest transaction');
-            }
 
             const res = await response.json();
 
@@ -249,7 +260,7 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 toast.success(`Divest transaction submitted: ${txHash}`,{closeOnClick:true,autoClose: false});
             }else{
                 console.error(res.error)
-                toast.error(`Divest transaction failed`);
+                toast.error(`Divest transaction failed: ${res.error}`);
             }
 
         } catch (error) {
@@ -386,8 +397,10 @@ export default function Opportunities({ smartWalletAddress }: { smartWalletAddre
                 isOpen={isDivestModalOpen}
                 onClose={handleDivestModalClose}
                 opportunity={selectedOpportunity}
+                userAddress={smartWalletAddress}
                 onDivest={handleDivestSubmit}
                 onRequestDivest={handleRequestDivestSubmit}
+                onCompleteDivest={handleCompleteDivest}
             />
         </main>
     );

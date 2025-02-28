@@ -1,32 +1,79 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
-import { OpportunityData } from '../api/mockDB';
+import { Fragment, useState, useEffect } from 'react';
+import { OpportunityData, RedeemStatus } from '../api/mockDB';
+import { getAccessToken } from "@privy-io/react-auth";
+import { toast } from 'react-toastify';
 
 interface DivestFromOpportunityModalProps {
   isOpen: boolean;
   onClose: () => void;
   opportunity: OpportunityData | null;
+  userAddress: string | null,
   onDivest: (amounts: Record<string, string>) => void;
   onRequestDivest: (amounts: Record<string, string>) => void;
   pendingDivestments?: Array<{id: string, timestamp: number, amounts: Record<string, string>}>;
   onCompleteDivest?: (divestmentId: string) => void;
+  getDivestInfo?: (userAddress: string) => void
 }
 
 export default function DivestFromOpportunityModal({
   isOpen,
   onClose,
   opportunity,
+  userAddress,
   onDivest,
   onRequestDivest,
-  pendingDivestments = [],
   onCompleteDivest,
 }: DivestFromOpportunityModalProps) {
   const [activeTab, setActiveTab] = useState<'request' | 'complete'>('request');
+  const [divestInfo, setDivestInfo] = useState<RedeemStatus[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
+
+  const getDivestInfo = async () => {
+    if(!opportunity || !userAddress){
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log("getDivestInfo call")
+      const accessToken = await getAccessToken();
+      const response = await fetch(`/api/getters/getWithdrawStatus?userAddress=${userAddress}&opportunityId=${opportunity.id}`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
+          },
+      });
+
+      if (!response.ok) {
+          toast.error(`Failed to get divestment info`);
+      }
+
+      const res = await response.json();
+      console.log(res.data);
+      setDivestInfo(res.data);
+    } catch (error) {
+        console.error('Error getting transaction:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
+  useEffect(() => {
+    console.log(opportunity)
+    console.log(userAddress)
+    getDivestInfo()
+  }, [opportunity, userAddress]);
+
   if (!opportunity) return null;
 
   const isImmediateWithdrawal = opportunity.immediateWithdrawal !== false;
 
+
+  
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="fixed inset-0 z-10" onClose={onClose}>
@@ -53,7 +100,7 @@ export default function DivestFromOpportunityModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-6xl min-h-[600px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
@@ -128,40 +175,91 @@ export default function DivestFromOpportunityModal({
 
                   {!isImmediateWithdrawal && activeTab === 'complete' && (
                     <div className="space-y-4">
-                      {pendingDivestments.length === 0 ? (
-                        <p className="text-sm text-gray-500">No pending withdrawal requests for this opportunity.</p>
-                      ) : (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Pending Withdrawal Requests</h4>
-                          <div className="space-y-3">
-                            {pendingDivestments.map((divestment) => {
-                              const requestTime = new Date(divestment.timestamp);
-                              return (
-                                <div key={divestment.id} className="border rounded-md p-3 bg-gray-50">
-                                  <p className="text-sm text-gray-600">Request ID: {divestment.id}</p>
-                                  <p className="text-sm text-gray-600">
-                                    Requested: {requestTime.toLocaleDateString()} {requestTime.toLocaleTimeString()}
-                                  </p>
-                                  <div className="mt-1">
-                                    <h5 className="text-xs font-medium text-gray-500">Amounts:</h5>
-                                    <ul className="text-sm">
-                                      {Object.entries(divestment.amounts).map(([symbol, amount]) => (
-                                        <li key={symbol}>{symbol}: {amount}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="mt-2 inline-flex justify-center rounded-md border border-transparent bg-violet-600 px-3 py-1 text-sm font-medium text-white hover:bg-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
-                                    onClick={() => onCompleteDivest && onCompleteDivest(divestment.id)}
-                                  >
-                                    Complete Withdrawal
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
+                      {isLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
                         </div>
+                      ) : (
+                        !divestInfo || divestInfo.length === 0 ? (
+                          <p className="text-sm text-gray-500">No pending withdrawal requests for this opportunity.</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                              <thead className="bg-gray-50">
+                                <tr>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Request ID
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Amount
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Request Time
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Claimable Time
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Redeemable
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Redeemed
+                                  </th>
+                                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {divestInfo.map((status) => (
+                                  <tr key={status.requestId}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                      {status.requestId}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                      {status.amountRedeemed} {status.redeemedAsset.symbol}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                      {new Date(status.redeemRequestTimeStamp * 1000).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                      {status.claimableTimeStamp === 0 ? 
+                                        'N/A' : 
+                                        new Date(status.claimableTimeStamp * 1000).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        status.redeemable ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {status.redeemable ? 'Yes' : 'No'}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        status.redeemed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {status.redeemed ? 'Yes' : 'No'}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                      <button
+                                        className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                                          status.redeemable && !status.redeemed
+                                            ? 'bg-violet-600 text-white hover:bg-violet-700'
+                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                        disabled={!status.redeemable || status.redeemed}
+                                        onClick={() => onCompleteDivest && onCompleteDivest(status.requestId)}
+                                      >
+                                        Finish Redeem
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )
                       )}
                     </div>
                   )}

@@ -99,42 +99,123 @@ export const erc20ABI = [
 ] as const;
 
 
-
 export const lidoSubmitABI = [
-    {
-      type: 'function',
-      name: 'submit',
-      stateMutability: 'payable',
-      inputs: [{ name: '_referral', type: 'address' }],
-      outputs: [{ name: 'shares', type: 'uint256' }],
-    },
-  ];
+  {
+    type: 'function',
+    name: 'submit',
+    stateMutability: 'payable',
+    inputs: [{ name: '_referral', type: 'address' }],
+    outputs: [{ name: 'shares', type: 'uint256' }],
+  },
+];
 
-  export const lidoRequestWithdrawalABI = [
-    {
-      type: "function",
-      name: "requestWithdrawals",
-      stateMutability: "nonpayable",
-      inputs: [
-        {
-          internalType: "uint256[]",
-          name: "_amounts",
-          type: "uint256[]"
-        },
-        {
-          internalType: "address", 
-          name: "_owner",
-          type: "address"
-        }
-      ],
-      outputs: [
-        {
-          internalType: "uint256[]",
-          name: "requestIds",
-          type: "uint256[]"
-        }
-      ],
-    },
-  ];
-  
-  
+export const lidoRequestWithdrawalABI = [
+  {
+    type: "function",
+    name: "requestWithdrawals",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        internalType: "uint256[]",
+        name: "_amounts",
+        type: "uint256[]"
+      },
+      {
+        internalType: "address",
+        name: "_owner",
+        type: "address"
+      }
+    ],
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "requestIds",
+        type: "uint256[]"
+      }
+    ],
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      }
+    ],
+    "name": "getWithdrawalRequests",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "requestsIds",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_requestIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "getWithdrawalStatus",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "amountOfStETH",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOfShares",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isFinalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isClaimed",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct WithdrawalQueueBase.WithdrawalRequestStatus[]",
+        "name": "statuses",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_requestId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimWithdrawal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+];
+

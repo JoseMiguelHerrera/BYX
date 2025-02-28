@@ -30,6 +30,16 @@ export interface TokenInput {
   amount: string;
 }
 
+export interface RedeemStatus {
+  requestId: string,
+  redeemedAsset: Asset;
+  amountRedeemed: string,
+  redeemRequestTimeStamp: number;
+  claimableTimeStamp: number;
+  redeemable: boolean;
+  redeemed: boolean;
+}
+
 export enum TransactionType {
   Invest = 'invest',
   Divest = 'divest',

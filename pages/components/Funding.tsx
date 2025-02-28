@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useFundWallet } from "@privy-io/react-auth";
 import { getViemChain } from '../api/engine/chainPicker';
+import { toast } from 'react-toastify';
 
 interface Asset {
   name: string;
@@ -16,7 +17,6 @@ interface Chain {
 }
 
 function generateFundingObject(chain: Chain, asset: Asset) {
-    console.log(chain,asset);
    let viemChain = getViemChain(chain.id);
 
    let assetConfig: string | {erc20: string};
@@ -24,7 +24,8 @@ function generateFundingObject(chain: Chain, asset: Asset) {
     assetConfig = 'native-currency';
    } else {
         if(!asset.address) {
-            throw new Error('Asset address missing');
+            console.log("Asset address missing");
+            return null;
         }
     assetConfig = {erc20: asset.address};
    }
@@ -46,6 +47,10 @@ export default function Funding({ smartWalletAddress }: { smartWalletAddress: st
         return;
     }
     const fundWalletConfig = generateFundingObject(selectedChain, selectedAsset);
+    if(!fundWalletConfig) {
+        toast.error(`Failed to generate funding object`);
+        return;
+    }
     console.log(fundWalletConfig);
     fundWallet(smartWalletAddress, fundWalletConfig);
   }
@@ -55,7 +60,7 @@ export default function Funding({ smartWalletAddress }: { smartWalletAddress: st
       try {
         const response = await fetch('/api/chainsAssets');
         if (!response.ok) {
-          throw new Error('Failed to fetch chains');
+          console.error('Failed to fetch chains');
         }
         const data = await response.json();
         setChains(data.chains);
