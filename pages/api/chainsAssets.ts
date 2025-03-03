@@ -6,35 +6,29 @@ const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 import { mockChains, ChainMetadata } from "./mockDB";
 
 export type ChainsAssetsSuccessResponse = {
-    chains: ChainMetadata[];
+  chains: ChainMetadata[];
 };
 
 export type ChainsAssetsErrorResponse = {
-    error: string;
+  error: string;
 };
 
-
-
 async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse<
-    ChainsAssetsSuccessResponse | ChainsAssetsErrorResponse
-    >,
+  req: NextApiRequest,
+  res: NextApiResponse<ChainsAssetsSuccessResponse | ChainsAssetsErrorResponse>,
 ) {
+  const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
+  const cookieAuthToken = req.cookies["privy-token"];
 
-    const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
-    const cookieAuthToken = req.cookies["privy-token"];
-
-    const authToken = cookieAuthToken || headerAuthToken;
-    if (!authToken) return res.status(401).json({ error: "Missing auth token" });
-    try {
-        await client.verifyAuthToken(authToken);
-        return res.status(200).json({ chains: mockChains });
-    } catch (e: any) {
-        console.log(e)
-        return res.status(500).json({ error: e.message });
-    }
-
+  const authToken = cookieAuthToken || headerAuthToken;
+  if (!authToken) return res.status(401).json({ error: "Missing auth token" });
+  try {
+    await client.verifyAuthToken(authToken);
+    return res.status(200).json({ chains: mockChains });
+  } catch (e: any) {
+    console.log(e);
+    return res.status(500).json({ error: e.message });
+  }
 }
 
 export default handler;

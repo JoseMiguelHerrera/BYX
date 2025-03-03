@@ -1,6 +1,6 @@
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { OpportunityData } from './Opportunities';
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import { OpportunityData } from "../api/mockDB";
 
 interface InvestInOpportunityModalProps {
   isOpen: boolean;
@@ -53,17 +53,31 @@ export default function InvestInOpportunityModal({
                 <div className="mt-4">
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-gray-500">Protocol: {opportunity.protocol}</p>
-                      <p className="text-sm text-gray-500">Type: {opportunity.type}</p>
-                      <p className="text-sm text-gray-500">Chain: {opportunity.chain}</p>
-                      <p className="text-sm text-gray-500">APY: {opportunity.apy.toFixed(2)}%</p>
                       <p className="text-sm text-gray-500">
-                        Required Assets: {opportunity.inputAssets.map(asset => asset.symbol).join(', ')}
+                        Protocol: {opportunity.protocol}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Type: {opportunity.type}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Chain: {opportunity.chain}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        APY: {opportunity.apy.toFixed(2)}%
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Required Assets:{" "}
+                        {opportunity.inputAssets
+                          .map((asset) => asset.symbol)
+                          .join(", ")}
                       </p>
                     </div>
                     {opportunity.inputAssets.map((asset, index) => (
                       <div key={index}>
-                        <label htmlFor={`amount-${asset.symbol}`} className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor={`amount-${asset.symbol}`}
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           {asset.name} Amount
                         </label>
                         <div className="mt-1">
@@ -95,8 +109,10 @@ export default function InvestInOpportunityModal({
                     className="inline-flex justify-center rounded-md border border-transparent bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
                     onClick={() => {
                       const amounts: Record<string, string> = {};
-                      opportunity.inputAssets.forEach(asset => {
-                        const input = document.getElementById(`amount-${asset.symbol}`) as HTMLInputElement;
+                      opportunity.inputAssets.forEach((asset) => {
+                        const input = document.getElementById(
+                          `amount-${asset.symbol}`,
+                        ) as HTMLInputElement;
                         amounts[asset.symbol] = input.value;
                       });
                       onInvest(amounts);

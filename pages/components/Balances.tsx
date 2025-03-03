@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { getAccessToken } from "@privy-io/react-auth";
+import { toast } from "react-toastify";
 
 interface BalanceData {
   chain: string;
@@ -8,7 +9,11 @@ interface BalanceData {
   usdValue: number;
 }
 
-export default function Balances({ smartWalletAddress }: { smartWalletAddress: string }) {
+export default function Balances({
+  smartWalletAddress,
+}: {
+  smartWalletAddress: string;
+}) {
   const [balances, setBalances] = useState<BalanceData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,23 +22,25 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
     setIsLoading(true);
     try {
       const accessToken = await getAccessToken();
-      const response = await fetch('/api/balances', {
-        method: 'POST',
+      const response = await fetch("/api/balances", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
+          "Content-Type": "application/json",
+          ...(accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined),
         },
         body: JSON.stringify({ address: smartWalletAddress }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch balances');
+        toast.error(`Failed to fetch balances`);
       }
 
       const data = await response.json();
       setBalances(data.balances);
     } catch (error) {
-      console.error('Error fetching balances:', error);
+      console.error("Error fetching balances:", error);
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +69,7 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`}
+              className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`}
             >
               <path
                 strokeLinecap="round"
@@ -72,7 +79,7 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
             </svg>
           </button>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -104,7 +111,11 @@ export default function Balances({ smartWalletAddress }: { smartWalletAddress: s
                     {balance.balance} {balance.symbol}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                    ${balance.usdValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    $
+                    {balance.usdValue.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                 </tr>
               ))}

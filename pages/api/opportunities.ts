@@ -16,7 +16,9 @@ export type OpportunitiesErrorResponse = {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<OpportunitiesSuccessResponse | OpportunitiesErrorResponse>
+  res: NextApiResponse<
+    OpportunitiesSuccessResponse | OpportunitiesErrorResponse
+  >,
 ) {
   const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
   const cookieAuthToken = req.cookies["privy-token"];

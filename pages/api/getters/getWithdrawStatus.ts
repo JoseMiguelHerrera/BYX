@@ -1,17 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
-import { mockOpportunities, TokenInput, TransactionType } from "./mockDB";
-import { createTransaction } from "./engine";
-
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
+import { mockOpportunities } from "../mockDB";
+//import { JSONStringify } from 'json-with-bigint';
+import { getWithdrawalStatus } from "../engine";
 
-export type BalanceSuccessResponse = {
-  transaction: any;
+export type Response = {
+  data: any;
 };
 
-export type BalanceErrorResponse = {
+export type ErrorResponse = {
   error: string;
 };
 
@@ -24,19 +24,16 @@ async function getOpportunityData(opportunityId: string) {
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<BalanceSuccessResponse | BalanceErrorResponse>,
+  res: NextApiResponse<Response | ErrorResponse>,
 ) {
   const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
   const cookieAuthToken = req.cookies["privy-token"];
-  const body = req.body;
 
-  const smartWalletAddress = body.smartWalletAddress;
-  const opportunityId = body.opportunityId;
-  const tokenInputs = body.tokenInputs as TokenInput[];
-  const type = body.type as TransactionType;
-
-  const extraData = body.extraData as any[] | undefined;
-
+  const userAddress = req.query.userAddress as string;
+  const opportunityId = req.query.opportunityId as string;
+  if (!userAddress) {
+    return res.status(401).json({ error: "Missing user address" });
+  }
   const authToken = cookieAuthToken || headerAuthToken;
   if (!authToken) return res.status(401).json({ error: "Missing auth token" });
   try {
@@ -44,27 +41,13 @@ async function handler(
     const opportunity = await getOpportunityData(opportunityId);
     if (!opportunity)
       return res.status(404).json({ error: "Opportunity not found" });
-    const txHash = await createTransaction(
-      opportunity,
-      smartWalletAddress,
-      tokenInputs,
-      type,
-      extraData,
-    );
-
-    return res.status(200).json({ transaction: txHash });
+    const data = await getWithdrawalStatus(opportunity, userAddress);
+    console.log(data);
+    return res.status(200).json({ data });
   } catch (e: any) {
     console.log(e);
     return res.status(500).json({ error: e.message });
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: true,
-    responseLimit: false,
-    externalResolver: true, // This tells Next.js this route might take longer to resolve
-  },
-};
 
 export default handler;
