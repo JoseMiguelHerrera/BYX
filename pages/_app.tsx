@@ -2,10 +2,9 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
 
 function MyApp({ Component, pageProps }: AppProps) {
-
   return (
     <>
       <Head>
@@ -49,9 +48,8 @@ function MyApp({ Component, pageProps }: AppProps) {
           },
         }}
       >
-          <ToastContainer />
-          <Component {...pageProps} />
-
+        <ToastContainer />
+        <Component {...pageProps} />
       </PrivyProvider>
     </>
   );

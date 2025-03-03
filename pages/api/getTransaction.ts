@@ -8,50 +8,63 @@ const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 
 export type BalanceSuccessResponse = {
-    transaction: any;
+  transaction: any;
 };
 
 export type BalanceErrorResponse = {
-    error: string;
+  error: string;
 };
 
 //will be from db at some point
-async function getOpportunityData(opportunityId: string){
-    return mockOpportunities.find(opportunity => opportunity.id === opportunityId);
+async function getOpportunityData(opportunityId: string) {
+  return mockOpportunities.find(
+    (opportunity) => opportunity.id === opportunityId,
+  );
 }
-
 
 async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse<
-        BalanceSuccessResponse | BalanceErrorResponse
-    >,
+  req: NextApiRequest,
+  res: NextApiResponse<BalanceSuccessResponse | BalanceErrorResponse>,
 ) {
-    const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
-    const cookieAuthToken = req.cookies["privy-token"];
-    const body = req.body;
+  const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
+  const cookieAuthToken = req.cookies["privy-token"];
+  const body = req.body;
 
-    const smartWalletAddress = body.smartWalletAddress;
-    const opportunityId = body.opportunityId;
-    const tokenInputs = body.tokenInputs as TokenInput[];
-    const type = body.type as TransactionType;
+  const smartWalletAddress = body.smartWalletAddress;
+  const opportunityId = body.opportunityId;
+  const tokenInputs = body.tokenInputs as TokenInput[];
+  const type = body.type as TransactionType;
 
-    const extraData = body.extraData as any[] | undefined;
+  const extraData = body.extraData as any[] | undefined;
 
-    const authToken = cookieAuthToken || headerAuthToken;
-    if (!authToken) return res.status(401).json({ error: "Missing auth token" });
-    try {
-        await client.verifyAuthToken(authToken);
-        const opportunity = await getOpportunityData(opportunityId);
-        if(!opportunity) return res.status(404).json({ error: "Opportunity not found" });
-        const txHash = await createTransaction(opportunity, smartWalletAddress,tokenInputs,type,extraData );
+  const authToken = cookieAuthToken || headerAuthToken;
+  if (!authToken) return res.status(401).json({ error: "Missing auth token" });
+  try {
+    await client.verifyAuthToken(authToken);
+    const opportunity = await getOpportunityData(opportunityId);
+    if (!opportunity)
+      return res.status(404).json({ error: "Opportunity not found" });
+    const txHash = await createTransaction(
+      opportunity,
+      smartWalletAddress,
+      tokenInputs,
+      type,
+      extraData,
+    );
 
-        return res.status(200).json({transaction: txHash});
-    } catch (e: any) {
-        console.log(e);
-        return res.status(500).json({ error: e.message });
-    }
-
+    return res.status(200).json({ transaction: txHash });
+  } catch (e: any) {
+    console.log(e);
+    return res.status(500).json({ error: e.message });
+  }
 }
+
+export const config = {
+  api: {
+    bodyParser: true,
+    responseLimit: false,
+    externalResolver: true, // This tells Next.js this route might take longer to resolve
+  },
+};
 
 export default handler;
