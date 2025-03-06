@@ -4,7 +4,7 @@ import { OpportunityData } from "../api/mockDB";
 import React from "react";
 import { getAccessToken } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
-import {getToken1AmountFromToken0Amount, getToken0AmountFromToken1Amount} from "../libs/uniswapAmountCalculator";
+import { getToken1AmountFromToken0Amount, getToken0AmountFromToken1Amount } from "../libs/uniswapAmountCalculator";
 
 interface InvestInOpportunityModalProps {
   isOpen: boolean;
@@ -23,10 +23,10 @@ export default function InvestInOpportunityModal({
 }: InvestInOpportunityModalProps) {
   // Change from ranges to range for a single token
   const [range, setRange] = useState<{ min: number; max: number } | null>(null);
-  
+
   // Add state for asset amounts
   const [assetAmounts, setAssetAmounts] = useState<Record<string, string>>({});
-  
+
   // Add state for loading and investment info
   const [isLoading, setIsLoading] = useState(false);
   const [investmentInfo, setInvestmentInfo] = useState<any>(null);
@@ -79,7 +79,7 @@ export default function InvestInOpportunityModal({
   useEffect(() => {
     const fetchInvestmentInfo = async () => {
       if (!opportunity || !isOpen) return;
-      
+
       try {
         setIsLoading(true);
         const accessToken = await getAccessToken();
@@ -120,7 +120,7 @@ export default function InvestInOpportunityModal({
   ) => {
     setRange((prev) => {
       if (!prev) return { min: value, max: value };
-      
+
       // Ensure min doesn't exceed max and max doesn't go below min
       if (type === "min" && value > prev.max) {
         value = prev.max;
@@ -133,7 +133,7 @@ export default function InvestInOpportunityModal({
         [type]: value,
       };
     });
-    
+
     // Clear asset amounts when range changes
     if (opportunity) {
       const clearedAmounts: Record<string, string> = {};
@@ -156,59 +156,46 @@ export default function InvestInOpportunityModal({
       ...prev,
       [symbolOfAssetChanging]: value,
     }));
-    
-    //force the other field to update according to uniswap's rules
 
-    // Get the other asset's symbol (for LP pairs)
-    const otherAssetIndex = opportunity?.inputAssets.findIndex((_, idx) => idx !== assetIndex);
-    const otherAssetSymbol = otherAssetIndex !== -1 ? opportunity?.inputAssets[otherAssetIndex]?.symbol : null;
-    
-    console.log(`assetIndex: ${assetIndex}, symbol: ${symbolOfAssetChanging}, value: ${value}`);
-    console.log(`otherAssetIndex: ${otherAssetIndex}, otherSymbol: ${otherAssetSymbol}`);
-
-    if(assetIndex === 0){
-      const token0Amount = parseFloat(value);
-      // Check if range exists before accessing its properties
-      if (range) {
+    if (opportunity.type === "LP" && range) {
+      //force the other field to update according to uniswap's rules
+      // Get the other asset's symbol (for LP pairs)
+      const otherAssetIndex = opportunity?.inputAssets.findIndex((_, idx) => idx !== assetIndex);
+      const otherAssetSymbol = otherAssetIndex !== -1 ? opportunity?.inputAssets[otherAssetIndex]?.symbol : null;
+      if (assetIndex === 0) {
+        const token0Amount = parseFloat(value);
         const token1Amount = getToken1AmountFromToken0Amount(
-          token0Amount, 
-          range.min, 
-          range.max, 
+          token0Amount,
+          range.min,
+          range.max,
           investmentInfo?.LpPriceInfo?.price
         );
         console.log(`token1Amount: ${token1Amount}`);
-        if(token1Amount && otherAssetSymbol){
+        if (token1Amount && otherAssetSymbol) {
           setAssetAmounts((prev) => ({
             ...prev,
             [otherAssetSymbol]: token1Amount.toString(),
           }));
-        }else{
+        } else {
           toast.error(`Invalid amount for current range`)
         }
-      }else{
-        console.error(`range is not set`);
-      }
-    }else if(assetIndex === 1){
-      const token1Amount = parseFloat(value);
-      // Check if range exists before accessing its properties
-      if (range) {
+      } else if (assetIndex === 1) {
+        const token1Amount = parseFloat(value);
         const token0Amount = getToken0AmountFromToken1Amount(
-          token1Amount, 
-          range.min, 
-          range.max, 
+          token1Amount,
+          range.min,
+          range.max,
           investmentInfo?.LpPriceInfo?.price
         );
         console.log(`token0Amount: ${token0Amount}`);
-        if(token0Amount && otherAssetSymbol){
+        if (token0Amount && otherAssetSymbol) {
           setAssetAmounts((prev) => ({
             ...prev,
             [otherAssetSymbol]: token0Amount.toString(),
           }));
-        }else{
+        } else {
           toast.error(`Invalid amount for current range`)
         }
-      }else{
-        console.error(`range is not set`);
       }
     }
   };
@@ -317,18 +304,18 @@ export default function InvestInOpportunityModal({
                         {opportunity.inputAssets.length > 0 && (() => {
                           const asset = opportunity.inputAssets[0]; // Only use the first asset
                           if (!asset || !asset.symbol) return null;
-                          
+
                           // Use price from investmentInfo
-                          const currentPrice = investmentInfo?.LpPriceInfo?.price && 
-                                              investmentInfo.LpPriceInfo.priceOf === asset.symbol ? 
-                                              parseFloat(investmentInfo.LpPriceInfo.price) : 
-                                              asset.priceUSD ?? 1;
-                          
+                          const currentPrice = investmentInfo?.LpPriceInfo?.price &&
+                            investmentInfo.LpPriceInfo.priceOf === asset.symbol ?
+                            parseFloat(investmentInfo.LpPriceInfo.price) :
+                            asset.priceUSD ?? 1;
+
                           const minPrice = currentPrice * 0.8;
                           const maxPrice = currentPrice * 1.2;
-                          
+
                           if (!range) return null;
-                          
+
                           return (
                             <div className="space-y-2">
                               <label className="block text-sm font-medium text-gray-700">
@@ -344,10 +331,10 @@ export default function InvestInOpportunityModal({
                                   </span>
                                   <span className="text-xs text-gray-500 font-medium">
                                     ${currentPrice.toFixed(2)}
-                                    {investmentInfo?.LpPriceInfo && 
-                                     <span className="ml-1 text-xs text-gray-400">
-                                       (1 {investmentInfo.LpPriceInfo.priceOf} = {investmentInfo.LpPriceInfo.price} {investmentInfo.LpPriceInfo.priceIn})
-                                     </span>}
+                                    {investmentInfo?.LpPriceInfo &&
+                                      <span className="ml-1 text-xs text-gray-400">
+                                        (1 {investmentInfo.LpPriceInfo.priceOf} = {investmentInfo.LpPriceInfo.price} {investmentInfo.LpPriceInfo.priceIn})
+                                      </span>}
                                   </span>
                                   <span className="text-xs text-gray-500">
                                     ${maxPrice.toFixed(2)}
