@@ -103,7 +103,7 @@ export default function Opportunities({
     setSelectedOpportunity(null);
   };
 
-  const handleInvestSubmit = async (amounts: Record<string, string>) => {
+  const handleInvestSubmit = async (amounts: Record<string, string>,range: {min: number, max: number}) => {
     if (!selectedOpportunity) return;
 
     try {
@@ -128,6 +128,7 @@ export default function Opportunities({
           opportunityId: selectedOpportunity.id,
           tokenInputs,
           type: "invest",
+          extraData: [range],
         }),
       });
 
@@ -147,12 +148,14 @@ export default function Opportunities({
         console.error(res.error);
         toast.error(`Transaction(s) failed: ${res.error}`);
       }
+
     } catch (error) {
       console.error("Error getting transaction:", error);
     } finally {
       setIsInvestModalOpen(false);
       setSelectedOpportunity(null);
     }
+    
   };
 
   const handleRequestDivestSubmit = async (amounts: Record<string, string>) => {
@@ -422,6 +425,7 @@ export default function Opportunities({
         onClose={handleInvestModalClose}
         opportunity={selectedOpportunity}
         onInvest={handleInvestSubmit}
+        userAddress={smartWalletAddress}
       />
       <DivestFromOpportunityModal
         isOpen={isDivestModalOpen}

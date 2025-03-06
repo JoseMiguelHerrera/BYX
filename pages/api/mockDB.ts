@@ -22,6 +22,8 @@ export interface Asset {
   isFundingAsset: boolean;
   address: string | null;
   priceUSD: number;
+  decimals: number;
+  type: "ERC20" | "ERC721" | "ERC1155" | "NATIVE";
 }
 
 export interface TokenInput {
@@ -47,7 +49,7 @@ export enum TransactionType {
 
 export interface OpportunityContract {
   contractAddress: string;
-  type: "invest" | "divest";
+  type: "invest" | "divest" | "UniswapV3Pool";
 }
 
 export interface OpportunityData {
@@ -71,6 +73,8 @@ const ETH = {
   isFundingAsset: true,
   address: null,
   priceUSD: 2700,
+  decimals: 18,
+  type: "NATIVE",
 } as Asset;
 
 const BERA = {
@@ -80,6 +84,8 @@ const BERA = {
   isFundingAsset: true,
   address: null,
   priceUSD: 5.55,
+  decimals: 18,
+  type: "NATIVE",
 } as Asset;
 
 const USDC_BASIC = {
@@ -89,6 +95,8 @@ const USDC_BASIC = {
   isFundingAsset: true,
   address: "",
   priceUSD: 1.0,
+  decimals: 6,
+  type: "ERC20",
 } as Asset;
 
 const USDT_BASIC = {
@@ -98,24 +106,41 @@ const USDT_BASIC = {
   isFundingAsset: true,
   address: "",
   priceUSD: 1.0,
+  decimals: 6,
+  type: "ERC20",
 } as Asset;
 
-const stETH = {
+const WETH_BASIC = {
+  name: "Wrapped Ethereum",
+  symbol: "WETH",
+  isNative: false,
+  isFundingAsset: true,
+  address: null,
+  priceUSD: 2226.21,
+  decimals: 18,
+  type: "ERC20",
+} as Asset;
+
+const stETH_Ethereum = {
   name: "Lido Staked ETH",
   symbol: "stETH",
   isNative: false,
   isFundingAsset: false,
   address: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
   priceUSD: 2700,
+  decimals: 18,
+  type: "ERC20",
 } as Asset;
 
-const USDC_USDT_LP_ARB = {
-  name: "USDC-USDT LP",
-  symbol: "USDC-USDT LP",
+const WETH_USDC_LP_ARB = {
+  name: "WETH-USDC LP",
+  symbol: "WETH-USDC LP",
   isNative: false,
   isFundingAsset: false,
-  address: "",
+  address: "", //TODO: add address
   priceUSD: 0, // this would need to be obtained from uniswap v3
+  decimals: 0,
+  type: "ERC721",
 } as Asset;
 
 let USDC_ETHSEPOLIA = { ...USDC_BASIC };
@@ -129,6 +154,9 @@ let USDT_ARBITRUM = { ...USDT_BASIC };
 USDT_ARBITRUM.address = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9";
 let USDC_ARBITRUM = { ...USDC_BASIC };
 USDC_ARBITRUM.address = "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
+
+let WETH_ARBITRUM = { ...WETH_BASIC };
+WETH_ARBITRUM.address = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1";
 
 export const mockChains: ChainMetadata[] = [
   {
@@ -152,7 +180,7 @@ export const mockChains: ChainMetadata[] = [
   {
     id: "arbitrum",
     name: "Arbitrum",
-    assets: [ETH],
+    assets: [ETH, USDC_ARBITRUM, WETH_ARBITRUM],
   },
   {
     id: "arbitrum-sepolia",
@@ -187,7 +215,7 @@ export const mockOpportunities: OpportunityData[] = [
     name: "ETH Staking",
     chain: "ethereum",
     inputAssets: [ETH],
-    outputAssets: [stETH],
+    outputAssets: [stETH_Ethereum],
     apy: 4.8,
     enabled: true,
     immediateWithdrawal: false,
@@ -205,20 +233,24 @@ export const mockOpportunities: OpportunityData[] = [
     ],
   },
   {
-    id: "2",
-    name: "Uniswap Arbitrum USDT - USDC LP",
+    id: "2", //The pool is 0xC6962004f452bE9203591991D15f6b388e09E8D0
+    name: "Uniswap Arbitrum WETH - USDC LP",
     chain: "arbitrum",
-    inputAssets: [USDT_ARBITRUM, USDC_ARBITRUM],
-    outputAssets: [USDC_USDT_LP_ARB],
-    apy: 2.5,
-    enabled: false,
+    inputAssets: [WETH_ARBITRUM, USDC_ARBITRUM],
+    outputAssets: [WETH_USDC_LP_ARB],
+    apy: 105,
+    enabled: true,
     immediateWithdrawal: true,
     type: "LP",
     protocol: "Uniswap",
     contracts: [
       {
-        contractAddress: "",
+        contractAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
         type: "invest",
+      },
+      {
+        contractAddress: "0xC6962004f452bE9203591991D15f6b388e09E8D0",
+        type: "UniswapV3Pool",
       },
     ],
   },

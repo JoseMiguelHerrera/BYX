@@ -31,6 +31,11 @@ export default class ServerSideTransactions {
     userAddress: string,
     transactions: any[],
   ) {
+    if (chain === "arbitrum") {
+      //TODO: figure out how to simulate arbitrum transactions if this way is not possible.
+      console.log("Simulation not supported for arbitrum");
+      return;
+    }
     console.log("userAddress", userAddress);
     const viemChain = getViemChain(chain);
     const client = createPublicClient({

@@ -7,6 +7,11 @@ import {
 } from "./lido/lido";
 import { OpportunityData, TokenInput, TransactionType } from "../mockDB";
 import ServerSideTransactions from "./serverSideTransactions";
+import {
+  createUniswapInvestApprovalTransactions,
+  createUniswapMintLPTransaction,
+  getUniswapLPInfo,
+} from "./uniswap/uniswap";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -29,6 +34,21 @@ export async function createTransaction(
           inputAmounts,
         );
         txs.push(tx);
+        break;
+      case "2":
+        let approvalTxs = await createUniswapInvestApprovalTransactions(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let mintTx = await createUniswapMintLPTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          approvalTxs.length,
+          extraData
+        );
+        txs.push(...approvalTxs, mintTx);
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -91,3 +111,16 @@ export async function getWithdrawalStatus(
 
   return result;
 }
+
+export async function getInvestmentInfo(
+  opportunity: OpportunityData,
+  userAddress: string,
+) {
+  let result: any = null;
+  switch (opportunity.protocol) {
+    case "Uniswap":
+      result = await getUniswapLPInfo(opportunity, userAddress);
+  }
+  return result;
+}
+

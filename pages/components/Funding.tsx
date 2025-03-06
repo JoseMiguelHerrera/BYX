@@ -2,25 +2,13 @@ import { useState, useEffect } from "react";
 import { useFundWallet } from "@privy-io/react-auth";
 import { getViemChain } from "../api/engine/chainPicker";
 import { toast } from "react-toastify";
+import { Asset, ChainMetadata } from "../api/mockDB";
 
-interface Asset {
-  name: string;
-  symbol: string;
-  isNative: boolean;
-  address: string | null;
-}
-
-interface Chain {
-  id: string;
-  name: string;
-  assets: Asset[];
-}
-
-function generateFundingObject(chain: Chain, asset: Asset) {
+function generateFundingObject(chain: ChainMetadata, asset: Asset) {
   let viemChain = getViemChain(chain.id);
 
   let assetConfig: string | { erc20: string };
-  if (asset.isNative) {
+  if (asset.type === "NATIVE") {
     assetConfig = "native-currency";
   } else {
     if (!asset.address) {
@@ -41,8 +29,10 @@ export default function Funding({
 }: {
   smartWalletAddress: string;
 }) {
-  const [chains, setChains] = useState<Chain[]>([]);
-  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
+  const [chains, setChains] = useState<ChainMetadata[]>([]);
+  const [selectedChain, setSelectedChain] = useState<ChainMetadata | null>(
+    null,
+  );
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const { fundWallet } = useFundWallet();
 
@@ -134,7 +124,10 @@ export default function Funding({
               <p>
                 Selected Asset: {selectedAsset.name} ({selectedAsset.symbol})
               </p>
-              <p>Asset Type: {selectedAsset.isNative ? "Native" : "Token"}</p>
+              <p>
+                Asset Type:{" "}
+                {selectedAsset.type === "NATIVE" ? "Native Asset" : "Token"}
+              </p>
               {selectedAsset.address && (
                 <p>Contract Address: {selectedAsset.address}</p>
               )}

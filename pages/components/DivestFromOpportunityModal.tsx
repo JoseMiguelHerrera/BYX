@@ -72,7 +72,9 @@ export default function DivestFromOpportunityModal({
   useEffect(() => {
     console.log(opportunity);
     console.log(userAddress);
-    getDivestInfo();
+    if (opportunity && !opportunity.immediateWithdrawal) {
+      getDivestInfo();
+    }
   }, [opportunity, userAddress]);
 
   if (!opportunity) return null;
