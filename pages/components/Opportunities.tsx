@@ -22,8 +22,7 @@ export default function Opportunities({
   const { user } = usePrivy();
   const [opportunities, setOpportunities] = useState<OpportunityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedOpportunity, setSelectedOpportunity] =
-    useState<OpportunityData | null>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityData | null>(null);
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [isDivestModalOpen, setIsDivestModalOpen] = useState(false);
   // const { client, getClientForChain, } = useSmartWallets();
@@ -95,16 +94,25 @@ export default function Opportunities({
 
   const handleInvestModalClose = () => {
     setIsInvestModalOpen(false);
-    setSelectedOpportunity(null);
+    if (!isDivestModalOpen) {
+      setSelectedOpportunity(null);
+    }
   };
 
   const handleDivestModalClose = () => {
     setIsDivestModalOpen(false);
-    setSelectedOpportunity(null);
+    if (!isInvestModalOpen) {
+      setSelectedOpportunity(null);
+    }
   };
 
-  const handleInvestSubmit = async (amounts: Record<string, string>,range: {min: number, max: number}) => {
+  const handleInvestSubmit = async (amounts: Record<string, string>, range?: {min: number, max: number}) => {
     if (!selectedOpportunity) return;
+
+    console.log("amounts");
+    console.log(amounts);
+    console.log("range");
+    console.log(range);
 
     try {
       const accessToken = await getAccessToken();
@@ -115,6 +123,8 @@ export default function Opportunities({
       toast.info("Sending Investment transaction(s)... Please wait.", {
         autoClose: false,
       });
+
+
       const response = await fetch("/api/getTransaction", {
         method: "POST",
         headers: {
@@ -153,7 +163,9 @@ export default function Opportunities({
       console.error("Error getting transaction:", error);
     } finally {
       setIsInvestModalOpen(false);
-      setSelectedOpportunity(null);
+      if (!isDivestModalOpen) {
+        setSelectedOpportunity(null);
+      }
     }
     
   };
@@ -201,7 +213,9 @@ export default function Opportunities({
       console.error("Error getting divest transaction(s):", error);
     } finally {
       setIsDivestModalOpen(false);
-      setSelectedOpportunity(null);
+      if (!isInvestModalOpen) {
+        setSelectedOpportunity(null);
+      }
     }
   };
 
@@ -294,9 +308,55 @@ export default function Opportunities({
       console.error("Error getting divest transaction(s):", error);
     } finally {
       setIsDivestModalOpen(false);
-      setSelectedOpportunity(null);
+      if (!isInvestModalOpen) {
+        setSelectedOpportunity(null);
+      }
     }
   };
+
+  const handleCollectRewards = async (divestmentId: string) => {
+    if (!selectedOpportunity) return;
+
+    try {
+      const accessToken = await getAccessToken();
+      toast.info("Sending Collect Rewards transaction(s)... Please wait.", {
+        autoClose: false,
+      });
+      const response = await fetch("/api/getTransaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined),
+        },
+        body: JSON.stringify({
+          smartWalletAddress: smartWalletAddress,
+          opportunityId: selectedOpportunity.id,
+          tokenInputs: [],
+          type: "collectRewards",
+          extraData: [parseInt(divestmentId)],
+        }),
+      });
+
+      const res = await response.json();
+
+      if (res.transaction) {
+        const txHash = res.transaction;
+        toast.success(`Divest transaction(s) submitted: ${txHash}`, {
+          closeOnClick: true,
+          autoClose: false,
+        });
+      } else {
+        console.error(res.error);
+        toast.error(`Divest transaction(s) failed: ${res.error}`);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error(`Error performing divestment: ${e}`);
+    }
+  };
+
 
   return (
     <main className="w-full flex items-center justify-center relative">
@@ -435,6 +495,7 @@ export default function Opportunities({
         onDivest={handleDivestSubmit}
         onRequestDivest={handleRequestDivestSubmit}
         onCompleteDivest={handleCompleteDivest}
+        onCollectRewards={handleCollectRewards}
       />
     </main>
   );

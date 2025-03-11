@@ -200,7 +200,7 @@ export default function InvestInOpportunityModal({
     }
   };
 
-  if (!opportunity) return null;
+  if (!opportunity || !isOpen) return null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>

@@ -45,6 +45,7 @@ export enum TransactionType {
   Invest = "invest",
   Divest = "divest",
   RequestDivest = "requestDivest",
+  CollectRewards = "collectRewards",
 }
 
 export interface OpportunityContract {
@@ -60,6 +61,7 @@ export interface OpportunityData {
   outputAssets: Asset[];
   apy: number;
   enabled: boolean;
+  withdrawalType: "AMOUNT"| "NFT",
   immediateWithdrawal: boolean;
   type: "Lending" | "LP" | "Staking";
   protocol: string;
@@ -219,6 +221,7 @@ export const mockOpportunities: OpportunityData[] = [
     apy: 4.8,
     enabled: true,
     immediateWithdrawal: false,
+    withdrawalType: "NFT",
     type: "Staking",
     protocol: "Lido",
     contracts: [
@@ -233,7 +236,7 @@ export const mockOpportunities: OpportunityData[] = [
     ],
   },
   {
-    id: "2", //The pool is 0xC6962004f452bE9203591991D15f6b388e09E8D0
+    id: "2",
     name: "Uniswap Arbitrum WETH - USDC LP",
     chain: "arbitrum",
     inputAssets: [WETH_ARBITRUM, USDC_ARBITRUM],
@@ -241,6 +244,7 @@ export const mockOpportunities: OpportunityData[] = [
     apy: 105,
     enabled: true,
     immediateWithdrawal: true,
+    withdrawalType: "NFT",
     type: "LP",
     protocol: "Uniswap",
     contracts: [

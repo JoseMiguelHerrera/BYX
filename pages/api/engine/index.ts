@@ -8,9 +8,12 @@ import {
 import { OpportunityData, TokenInput, TransactionType } from "../mockDB";
 import ServerSideTransactions from "./serverSideTransactions";
 import {
+  createCollectRewardsTransaction,
+  createRedeemTotalUniswapLPTransactions,
   createUniswapInvestApprovalTransactions,
   createUniswapMintLPTransaction,
   getUniswapLPInfo,
+  getUniswapLPPositions,
 } from "./uniswap/uniswap";
 
 export async function createTransaction(
@@ -20,7 +23,12 @@ export async function createTransaction(
   type: TransactionType,
   extraData: any[] = [],
 ) {
-  console.log(opportunity, userAddress, inputAmounts, type, extraData);
+  console.log("createTransaction")
+  console.log(`opportunity: ${JSON.stringify(opportunity)}`);
+  console.log(`userAddress: ${userAddress}`);
+  console.log(`inputAmounts: ${JSON.stringify(inputAmounts)}`);
+  console.log(`type: ${type}`);
+  console.log(`extraData: ${JSON.stringify(extraData)}`);
 
   //make this live longer, no need to remake it every time.
   const serverSideTransactions = new ServerSideTransactions();
@@ -59,6 +67,16 @@ export async function createTransaction(
           extraData,
         );
         txs.push(tx);
+        break;
+      case "2":
+        let totalRedeemTxs = await createRedeemTotalUniswapLPTransactions(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(...totalRedeemTxs);
+        break;
     }
   } else if (type === TransactionType.RequestDivest) {
     switch (opportunity.id) {
@@ -75,6 +93,18 @@ export async function createTransaction(
           1,
         );
         txs.push(tx1, tx2);
+    }
+  } else if (type === TransactionType.CollectRewards) {
+    switch (opportunity.id) {
+      case "2":
+        let collectRewardsTx = await createCollectRewardsTransaction(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(collectRewardsTx);
+        break;
     }
   } else {
     throw new Error("Invalid transaction type");
@@ -101,7 +131,13 @@ export async function getWithdrawalStatus(
   switch (opportunity.id) {
     case "1":
       result = await getLidoWithdrawalRequests(opportunity, userAddress);
+      break;
+    case "2":
+      result = await getUniswapLPPositions(opportunity, userAddress);
+      console.log(result);
+      break;
   }
+  //TODO: add uniswap position info here.
 
   if (!result) {
     throw new Error(

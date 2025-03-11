@@ -70,6 +70,7 @@ export default class ServerSideTransactions {
     userAddress: string,
     transactions: any[],
   ) {
+    //TODO: we need to have a check to make sure the user has enough balance to send the transactions
     await this.simulateTransactions(chain, userAddress, transactions);
     let hashes: string[] = [];
 
