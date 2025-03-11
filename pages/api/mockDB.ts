@@ -61,7 +61,7 @@ export interface OpportunityData {
   outputAssets: Asset[];
   apy: number;
   enabled: boolean;
-  withdrawalType: "AMOUNT"| "NFT",
+  withdrawalType: "AMOUNT" | "NFT";
   immediateWithdrawal: boolean;
   type: "Lending" | "LP" | "Staking";
   protocol: string;
@@ -143,6 +143,28 @@ const WETH_USDC_LP_ARB = {
   priceUSD: 0, // this would need to be obtained from uniswap v3
   decimals: 0,
   type: "ERC721",
+} as Asset;
+
+const aARBWETH = {
+  name: "Aave Arbitrum WETH",
+  symbol: "aARB-WETH",
+  isNative: false,
+  isFundingAsset: false,
+  address: "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
+  priceUSD: 1850,
+  decimals: 18,
+  type: "ERC20",
+} as Asset;
+
+const aARBUSDC = {
+  name: "Aave Arbitrum USDC",
+  symbol: "aARB-USDC",
+  isNative: false,
+  isFundingAsset: false,
+  address: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+  priceUSD: 1,
+  decimals: 6,
+  type: "ERC20",
 } as Asset;
 
 let USDC_ETHSEPOLIA = { ...USDC_BASIC };
@@ -255,6 +277,44 @@ export const mockOpportunities: OpportunityData[] = [
       {
         contractAddress: "0xC6962004f452bE9203591991D15f6b388e09E8D0",
         type: "UniswapV3Pool",
+      },
+    ],
+  },
+  {
+    id: "3",
+    name: "Aave V3 ETH Supply",
+    chain: "arbitrum",
+    inputAssets: [WETH_ARBITRUM],
+    outputAssets: [aARBWETH],
+    apy: 3.5,
+    enabled: true,
+    immediateWithdrawal: true,
+    withdrawalType: "AMOUNT",
+    type: "Lending",
+    protocol: "Aave",
+    contracts: [
+      {
+        contractAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        type: "invest",
+      },
+    ],
+  },
+  {
+    id: "4",
+    name: "Aave V3 USDC Supply",
+    chain: "arbitrum",
+    inputAssets: [USDC_ARBITRUM],
+    outputAssets: [aARBUSDC],
+    apy: 5,
+    enabled: true,
+    immediateWithdrawal: true,
+    withdrawalType: "AMOUNT",
+    type: "Lending",
+    protocol: "Aave",
+    contracts: [
+      {
+        contractAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        type: "invest",
       },
     ],
   },

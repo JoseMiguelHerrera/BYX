@@ -15,6 +15,12 @@ import {
   getUniswapLPInfo,
   getUniswapLPPositions,
 } from "./uniswap/uniswap";
+import {
+  createAaveV3SupplyApprovalTransaction,
+  createAaveV3SupplyTransaction,
+  createAaveV3WithdrawTransaction,
+} from "./aave/aave";
+import { createErc20ApprovalTransaction } from "./generic/approveErc20Token";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -23,7 +29,7 @@ export async function createTransaction(
   type: TransactionType,
   extraData: any[] = [],
 ) {
-  console.log("createTransaction")
+  console.log("createTransaction");
   console.log(`opportunity: ${JSON.stringify(opportunity)}`);
   console.log(`userAddress: ${userAddress}`);
   console.log(`inputAmounts: ${JSON.stringify(inputAmounts)}`);
@@ -54,9 +60,26 @@ export async function createTransaction(
           userAddress,
           inputAmounts,
           approvalTxs.length,
-          extraData
+          extraData,
         );
         txs.push(...approvalTxs, mintTx);
+        break;
+      case "3":
+      case "4":
+        let aaveSupplyApprovalTx = await createAaveV3SupplyApprovalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          0,
+        );
+        let aaveSupplyTx = await createAaveV3SupplyTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          1,
+        );
+        txs.push(aaveSupplyApprovalTx, aaveSupplyTx);
+        break;
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -76,6 +99,15 @@ export async function createTransaction(
           extraData,
         );
         txs.push(...totalRedeemTxs);
+        break;
+      case "3":
+      case "4":
+        let aaveWithdrawTx = await createAaveV3WithdrawTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        txs.push(aaveWithdrawTx);
         break;
     }
   } else if (type === TransactionType.RequestDivest) {
@@ -159,4 +191,3 @@ export async function getInvestmentInfo(
   }
   return result;
 }
-
