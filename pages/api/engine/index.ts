@@ -80,6 +80,21 @@ export async function createTransaction(
         );
         txs.push(aaveSupplyApprovalTx, aaveSupplyTx);
         break;
+      case "5":
+        let approvalTxs5 = await createUniswapInvestApprovalTransactions(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let mintTx5 = await createUniswapMintLPTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          approvalTxs5.length,
+          extraData,
+        );
+        txs.push(...approvalTxs5, mintTx5);
+        break;
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -109,6 +124,15 @@ export async function createTransaction(
         );
         txs.push(aaveWithdrawTx);
         break;
+        case "5":
+          let totalRedeemTxs5 = await createRedeemTotalUniswapLPTransactions(
+            opportunity,
+            userAddress,
+            0,
+            extraData,
+          );
+          txs.push(...totalRedeemTxs5);
+          break;
     }
   } else if (type === TransactionType.RequestDivest) {
     switch (opportunity.id) {
@@ -137,6 +161,15 @@ export async function createTransaction(
         );
         txs.push(collectRewardsTx);
         break;
+        case "5":
+          let collectRewardsTx5 = await createCollectRewardsTransaction(
+            opportunity,
+            userAddress,
+            0,
+            extraData,
+          );
+          txs.push(collectRewardsTx5);
+          break;
     }
   } else {
     throw new Error("Invalid transaction type");
@@ -168,6 +201,10 @@ export async function getWithdrawalStatus(
       result = await getUniswapLPPositions(opportunity, userAddress);
       console.log(result);
       break;
+    case "5":
+      result = await getUniswapLPPositions(opportunity, userAddress);
+      console.log(result);
+      break;
   }
   //TODO: add uniswap position info here.
 
@@ -188,6 +225,10 @@ export async function getInvestmentInfo(
   switch (opportunity.protocol) {
     case "Uniswap":
       result = await getUniswapLPInfo(opportunity, userAddress);
+      break;
+    case "Kodiak":
+      result = await getUniswapLPInfo(opportunity, userAddress);
+      break;
   }
   return result;
 }

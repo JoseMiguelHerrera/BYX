@@ -76,7 +76,7 @@ export async function createUniswapMintLPTransaction(
     console.log(`fee: ${fee}`);
 
 
-    const [tickLower, tickUpper] = priceRangeToTickRange(range.min, range.max, parseInt(fee.toString()));
+    const [tickLower, tickUpper] = priceRangeToTickRange(range.min, range.max, parseInt(fee.toString()), tokenInputs[0]?.asset.decimals as number, tokenInputs[1]?.asset.decimals as number);
     console.log(`calculatedtickLower: ${tickLower}`);
     console.log(`tickUpper: ${tickUpper}`);
 
