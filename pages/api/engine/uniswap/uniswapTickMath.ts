@@ -17,13 +17,13 @@ export const TICK_SPACINGS: Record<number, number> = {
    * Convert a price in USDC per ETH to a Uniswap V3 tick
    * For pools where ETH is token0 (18 decimals) and USDC is token1 (6 decimals)
    * 
-   * @param priceUsdcPerEth Price in USDC per ETH (e.g., 2000.50)
+   * @param pricePerToken0InToken1 Price in Token1 per Token0 (e.g., 2000.50 USD per ETH)
    * @returns The corresponding Uniswap V3 tick
    */
-  export function priceToTick(priceUsdcPerEth: number): number {
+  export function priceToTick(pricePerToken0InToken1: number, token0Decimals: number, token1Decimals: number): number {
     // Convert to Uniswap internal price format
     // For ETH (token0, 18 decimals) and USDC (token1, 6 decimals)
-    const adjustedPrice = priceUsdcPerEth * (10 ** (6 - 18)); // = price * 10^-12
+    const adjustedPrice = pricePerToken0InToken1 * (10 ** (token1Decimals - token0Decimals)); // = price * 10^-12
     
     // Calculate tick using Uniswap formula
     return Math.floor(Math.log(adjustedPrice) / Math.log(1.0001));
@@ -34,14 +34,14 @@ export const TICK_SPACINGS: Record<number, number> = {
    * For pools where ETH is token0 (18 decimals) and USDC is token1 (6 decimals)
    * 
    * @param tick The Uniswap V3 tick
-   * @returns Price in USDC per ETH
+   * @returns Price in Token1 per Token0
    */
-  export function tickToPrice(tick: number): number {
+  export function tickToPrice(tick: number, token0Decimals: number, token1Decimals: number): number {
     // Calculate Uniswap internal price
     const internalPrice = Math.pow(1.0001, tick);
     
     // Convert to market price (USDC per ETH)
-    return internalPrice * (10 ** (18 - 6)); // = price * 10^12
+    return internalPrice * (10 ** (token0Decimals - token1Decimals)); // = price * 10^12
   }
   
   /**
@@ -56,7 +56,9 @@ export const TICK_SPACINGS: Record<number, number> = {
   export function priceRangeToTickRange(
     minPrice: number,
     maxPrice: number,
-    fee: number = 3000
+    fee: number = 3000,
+    token0Decimals: number,
+    token1Decimals: number
   ): [number, number] {
     // Get tick spacing
     const tickSpacing = TICK_SPACINGS[fee];
@@ -65,8 +67,8 @@ export const TICK_SPACINGS: Record<number, number> = {
     }
     
     // Convert prices to ticks
-    const minTick = priceToTick(minPrice);
-    const maxTick = priceToTick(maxPrice);
+    const minTick = priceToTick(minPrice, token0Decimals, token1Decimals);
+    const maxTick = priceToTick(maxPrice, token0Decimals, token1Decimals);
     
     // Round to valid tick spacings
     // For lower tick, we want to round down to ensure the tick is <= our price

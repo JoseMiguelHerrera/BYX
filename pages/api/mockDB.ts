@@ -145,6 +145,17 @@ const WETH_USDC_LP_ARB = {
   type: "ERC721",
 } as Asset;
 
+const WETH_HONEY_LP_BERACHAIN = {
+  name: "WETH-HONEY LP",
+  symbol: "WETH-HONEY LP",
+  isNative: false,
+  isFundingAsset: false,
+  address: "0xFE5E8C83FFE4d9627A75EaA7Fee864768dB989bD",
+  priceUSD: 0, // this would need to be obtained from uniswap v3
+  decimals: 0,
+  type: "ERC721",
+} as Asset;
+
 const aARBWETH = {
   name: "Aave Arbitrum WETH",
   symbol: "aARB-WETH",
@@ -167,10 +178,19 @@ const aARBUSDC = {
   type: "ERC20",
 } as Asset;
 
-let USDC_ETHSEPOLIA = { ...USDC_BASIC };
-USDC_ETHSEPOLIA.address = "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238";
-let USDC_BASESEPOLIA = { ...USDC_BASIC };
-USDC_BASESEPOLIA.address = "0x036cbd53842c5426634e7929541ec2318f3dcf7e";
+const HONEY_BERACHAIN = {
+  name: "Honey",
+  symbol: "HONEY",
+  isNative: false,
+  isFundingAsset: true,
+  address: "0xfcbd14dc51f0a4d49d5e53c2e0950e0bc26d0dce",
+  priceUSD: 1,
+  decimals: 18,
+  type: "ERC20",
+} as Asset;
+
+
+
 let USDC_ETH = { ...USDC_BASIC };
 USDC_ETH.address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 
@@ -182,6 +202,9 @@ USDC_ARBITRUM.address = "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 let WETH_ARBITRUM = { ...WETH_BASIC };
 WETH_ARBITRUM.address = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1";
 
+let WETH_BERACHAIN = { ...WETH_BASIC };
+WETH_BERACHAIN.address = "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590";
+
 export const mockChains: ChainMetadata[] = [
   {
     id: "ethereum",
@@ -192,24 +215,9 @@ export const mockChains: ChainMetadata[] = [
     ],
   },
   {
-    id: "ethereum-sepolia",
-    name: "Ethereum Sepolia",
-    assets: [ETH, USDC_ETHSEPOLIA],
-  },
-  {
-    id: "ethereum-holesky",
-    name: "Ethereum Holesky",
-    assets: [ETH],
-  },
-  {
     id: "arbitrum",
     name: "Arbitrum",
     assets: [ETH, USDC_ARBITRUM, WETH_ARBITRUM],
-  },
-  {
-    id: "arbitrum-sepolia",
-    name: "Arbitrum Sepolia",
-    assets: [ETH],
   },
   {
     id: "base",
@@ -217,19 +225,9 @@ export const mockChains: ChainMetadata[] = [
     assets: [ETH],
   },
   {
-    id: "base-sepolia",
-    name: "Base Sepolia",
-    assets: [ETH, USDC_BASESEPOLIA],
-  },
-  {
     id: "berachain",
     name: "Berachain",
-    assets: [BERA],
-  },
-  {
-    id: "berachain-testnet",
-    name: "Berachain Testnet",
-    assets: [BERA],
+    assets: [BERA,HONEY_BERACHAIN],
   },
 ];
 
@@ -261,7 +259,7 @@ export const mockOpportunities: OpportunityData[] = [
     id: "2",
     name: "Uniswap Arbitrum WETH - USDC LP",
     chain: "arbitrum",
-    inputAssets: [WETH_ARBITRUM, USDC_ARBITRUM],
+    inputAssets: [WETH_ARBITRUM, USDC_ARBITRUM],//weth token is token0, usdc token is token1
     outputAssets: [WETH_USDC_LP_ARB],
     apy: 105,
     enabled: true,
@@ -315,6 +313,29 @@ export const mockOpportunities: OpportunityData[] = [
       {
         contractAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
         type: "invest",
+      },
+    ],
+  },
+  {
+    id: "5",
+    name: "Kodiak Berachain WETH - HONEY LP",
+    chain: "berachain",
+    inputAssets: [WETH_BERACHAIN, HONEY_BERACHAIN],
+    outputAssets: [WETH_HONEY_LP_BERACHAIN],
+    apy: 40,
+    enabled: true,
+    immediateWithdrawal: true,
+    withdrawalType: "NFT",
+    type: "LP",
+    protocol: "Kodiak",
+    contracts: [
+      {
+        contractAddress: "0xFE5E8C83FFE4d9627A75EaA7Fee864768dB989bD",
+        type: "invest",
+      },
+      {
+        contractAddress: "0x9EB897D400f245E151daFD4c81176397D7798C9c",
+        type: "UniswapV3Pool",
       },
     ],
   },

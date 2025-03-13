@@ -3,6 +3,8 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { ToastContainer } from "react-toastify";
+import {mainnet,base,arbitrum,berachain} from 'viem/chains';
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -46,6 +48,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           embeddedWallets: {
             createOnLogin: "all-users",
           },
+          supportedChains: [mainnet,base,arbitrum,berachain],
         }}
       >
         <ToastContainer />
