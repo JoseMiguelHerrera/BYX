@@ -22,7 +22,7 @@ export async function genericValidateTokenInputs(
         tokenInput.asset.address === opportunityAsset.address &&
         tokenInput.asset.name === opportunityAsset.name &&
         tokenInput.asset.symbol === opportunityAsset.symbol &&
-        tokenInput.asset.isNative === opportunityAsset.isNative &&
+        tokenInput.asset.type === opportunityAsset.type &&
         tokenInput.asset.isFundingAsset === opportunityAsset.isFundingAsset,
     );
 

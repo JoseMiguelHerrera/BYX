@@ -11,6 +11,7 @@ import {
 } from "viem";
 import { TokenInput, OpportunityData, RedeemStatus } from "../../mockDB";
 import { genericValidateTokenInputs } from "../validateAssets";
+import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
 
 export async function createLidoSubmitTransaction(
   opportunity: OpportunityData,
@@ -61,17 +62,8 @@ export async function createLidoRequestWithdrawalApprovalTransaction(
   tokenInputs: TokenInput[],
   nonceOffSet: number = 0,
 ) {
-  //TODO: validation
+  await genericValidateTokenInputs(opportunity, tokenInputs, "REDEEM");
   console.log(`tokenInputs: ${JSON.stringify(tokenInputs)}`);
-
-  const viemChain = getViemChain(opportunity.chain);
-  const client = createPublicClient({
-    chain: viemChain,
-    transport: http(), // Use default RPC
-  });
-  const nonce =
-    (await client.getTransactionCount({ address: userAddress as Address })) +
-    nonceOffSet;
 
   const outputAssetAddress = opportunity.outputAssets[0]?.address;
   const contractAddress = opportunity.contracts.find(
@@ -81,23 +73,14 @@ export async function createLidoRequestWithdrawalApprovalTransaction(
     throw new Error("Invalid contract addresses");
   }
 
-  const val = parseEther(tokenInputs[0]!.amount);
-
-  const data = encodeFunctionData({
-    abi: erc20ABI,
-    functionName: "approve",
-    args: [contractAddress as Address, val],
-  });
-
-  const transaction = {
-    chainId: viemChain.id,
-    to: outputAssetAddress,
-    value: `0x${BigInt(0).toString(16)}`,
-    nonce,
-    data,
-  };
-
-  return { transaction, wait: client.waitForTransactionReceipt };
+  const erc20ApprovalTx = await createErc20ApprovalTransaction(
+    userAddress,
+    opportunity.chain,
+    tokenInputs[0]!,
+    contractAddress as Address,
+    nonceOffSet,
+  );
+  return erc20ApprovalTx;
 }
 
 export async function createLidoRequestWithdrawalTransaction(
