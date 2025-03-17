@@ -10,7 +10,6 @@ import ServerSideTransactions from "./serverSideTransactions";
 import {
   createCollectRewardsTransaction,
   createRedeemTotalUniswapLPTransactions,
-  createUniswapInvestApprovalTransactions,
   createUniswapMintLPTransaction,
   getUniswapLPInfo,
   getUniswapLPPositions,
@@ -20,7 +19,8 @@ import {
   createAaveV3SupplyTransaction,
   createAaveV3WithdrawTransaction,
 } from "./aave/aave";
-import { createErc20ApprovalTransaction } from "./generic/approveErc20Token";
+import { createErc20ApprovalTransaction,createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
+import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -50,7 +50,7 @@ export async function createTransaction(
         txs.push(tx);
         break;
       case "2":
-        let approvalTxs = await createUniswapInvestApprovalTransactions(
+        let approvalTxs = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
           inputAmounts,
@@ -81,7 +81,7 @@ export async function createTransaction(
         txs.push(aaveSupplyApprovalTx, aaveSupplyTx);
         break;
       case "5":
-        let approvalTxs5 = await createUniswapInvestApprovalTransactions(
+        let approvalTxs5 = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
           inputAmounts,
@@ -95,6 +95,21 @@ export async function createTransaction(
         );
         txs.push(...approvalTxs5, mintTx5);
         break;
+        case "6":
+          let approvalTxs6 = await createDualTokenApprovalTransactions(
+            opportunity,
+            userAddress,
+            inputAmounts,
+          );
+          let mintTx6 = await createKodiakIslandMintTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts,
+            approvalTxs6.length,
+            extraData,
+          );
+          txs.push(...approvalTxs6, mintTx6);
+          break;
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -132,6 +147,21 @@ export async function createTransaction(
             extraData,
           );
           txs.push(...totalRedeemTxs5);
+          break;
+        case "6":
+          let approvalTx6 = await createKodiakIslandApprovalTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts,
+          );
+          let redeemTx6 = await createKodiakIslandRedeemTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts,
+            1,
+            extraData,
+          );
+          txs.push(approvalTx6, redeemTx6);
           break;
     }
   } else if (type === TransactionType.RequestDivest) {

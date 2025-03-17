@@ -20,11 +20,20 @@ export default function ImmediateAmountDivestModal({
 }: ImmediateAmountDivestModalProps) {
   const [assetAmounts, setAssetAmounts] = useState<Record<string, string>>({});
 
+  // Determine which assets to use based on withdrawal type
+  const getRelevantAssets = () => {
+    if (!opportunity) return [];
+    
+    return opportunity.withdrawalType === "AMOUNT_OUT" 
+      ? opportunity.outputAssets 
+      : opportunity.inputAssets;
+  };
+
   // Reset asset amounts when opportunity changes
   useEffect(() => {
     if (opportunity) {
       const initialAmounts: Record<string, string> = {};
-      opportunity.inputAssets.forEach((asset) => {
+      getRelevantAssets().forEach((asset) => {
         initialAmounts[asset.symbol] = "";
       });
       setAssetAmounts(initialAmounts);
@@ -39,6 +48,8 @@ export default function ImmediateAmountDivestModal({
   };
 
   if (!opportunity) return null;
+  
+  const relevantAssets = getRelevantAssets();
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -90,7 +101,7 @@ export default function ImmediateAmountDivestModal({
                       </p>
                       <p className="text-sm text-gray-500">
                         Required Assets:{" "}
-                        {opportunity.inputAssets
+                        {relevantAssets
                           .map((asset) => asset.symbol)
                           .join(", ")}
                       </p>
@@ -104,7 +115,7 @@ export default function ImmediateAmountDivestModal({
                       </div>
                     </div>
 
-                    {opportunity.inputAssets.map((asset, index) => (
+                    {relevantAssets.map((asset, index) => (
                       <div key={index}>
                         <label
                           htmlFor={`amount-${asset.symbol}`}
