@@ -1,4 +1,4 @@
-import { uniswapV3NonfungiblePositionManager, UniswapV3Pool } from "../../abis";
+import { KodiakIslandRouterABI, KodiakIslandABI } from "../../abis";
 import { getViemChain } from "../chainPicker";
 import {
     Address,
@@ -14,24 +14,267 @@ import {
 import { TokenInput, OpportunityData, RedeemStatus } from "../../mockDB";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
-import { Price, Token, } from "@uniswap/sdk-core";
-import { priceRangeToTickRange } from "./uniswapTickMath";
 
-const SLIPPAGE_PERCENTAGE = 50;//Crazy high, but this is not a real important parameter for LPing
+const SLIPPAGE_PERCENTAGE = 5;//Crazy high, but this is not a real important parameter for LPing
 
 interface MintLPArgs {
-    token0: Address;
-    token1: Address;
-    fee: bigint;
-    tickLower: bigint;
-    tickUpper: bigint;
+    islandContract: Address;
     amount0Desired: bigint;
     amount1Desired: bigint;
     amount0Min: bigint;
     amount1Min: bigint;
+    minShares: bigint;
     recipient: Address;
-    deadline: bigint;
 }
+
+
+export async function createKodiakIslandMintTransaction(
+    opportunity: OpportunityData,
+    userAddress: string,
+    tokenInputs: TokenInput[],
+    nonceOffSet: number = 0,
+    extraData: any[] = [],
+) {
+    console.log("createKodiakIslandMintTransaction")
+    console.log(`extraData: ${JSON.stringify(extraData)}`);
+    await validateKodiakIslandMint(opportunity, tokenInputs, extraData);
+    const viemChain = getViemChain(opportunity.chain);
+    const client = createPublicClient({
+        chain: viemChain,
+        transport: http(), // Use default RPC
+    });
+    const nonce =
+        (await client.getTransactionCount({ address: userAddress as Address })) +
+        nonceOffSet;
+
+    const token0Desired = parseUnits(
+        tokenInputs[0]?.amount as string,
+        tokenInputs[0]?.asset.decimals as number,
+    );
+    const token1Desired = parseUnits(
+        tokenInputs[1]?.amount as string,
+        tokenInputs[1]?.asset.decimals as number,
+    );
+
+    const poolContractAddress = opportunity.outputAssets[0]?.address;
+
+    if (!poolContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    const mintLPArgs: MintLPArgs = {
+        islandContract: poolContractAddress as Address,
+        amount0Desired: token0Desired,
+        amount1Desired: token1Desired,
+        amount0Min:
+            (token0Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        amount1Min:
+            (token1Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        minShares: BigInt(0),//TODO: calculate via simulation?
+        recipient: userAddress as Address,
+    };
+
+    const data = encodeFunctionData({
+        abi: KodiakIslandRouterABI,
+        functionName: "addLiquidity",
+        args: [
+            mintLPArgs.islandContract,
+            mintLPArgs.amount0Desired,
+            mintLPArgs.amount1Desired,
+            mintLPArgs.amount0Min,
+            mintLPArgs.amount1Min,
+            mintLPArgs.minShares,
+            mintLPArgs.recipient
+        ],
+    });
+
+    const investContractAddress = opportunity.contracts.find(
+        (contract) => contract.type === "invest",
+    )?.contractAddress;
+
+    if (!investContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    const transaction = {
+        chainId: viemChain.id,
+        to: investContractAddress,
+        value: `0x${BigInt(0).toString(16)}`,
+        nonce,
+        data,
+    };
+
+    return { transaction, wait: client.waitForTransactionReceipt };
+}
+
+export async function createKodiakIslandRedeemTransaction(
+    opportunity: OpportunityData,
+    userAddress: string,
+    tokenInputs: TokenInput[],
+    nonceOffSet: number = 0,
+    extraData: any[] = [],
+) {
+    console.log("createKodiakIslandRedeemTransaction")
+    console.log(`extraData: ${JSON.stringify(extraData)}`);
+    await validateKodiakIslandRedeem(opportunity, tokenInputs, extraData);
+    const viemChain = getViemChain(opportunity.chain);
+    const client = createPublicClient({
+        chain: viemChain,
+        transport: http(), // Use default RPC
+    });
+    const nonce =
+        (await client.getTransactionCount({ address: userAddress as Address })) +
+        nonceOffSet;
+
+    const burnAmount = parseUnits(
+        tokenInputs[0]?.amount as string,
+        tokenInputs[0]?.asset.decimals as number,
+    );
+
+    const totalSupply = await _getKodiakIslandTotalSupply(client, userAddress, opportunity);
+    const underlyingBalances = await _getKodiakIslandUnderlyingBalances(client, userAddress, opportunity);
+
+    const expectedAmount0 = underlyingBalances.expectedAmount0! * burnAmount / totalSupply
+    const expectedAmount1 = underlyingBalances.expectedAmount1! * burnAmount / totalSupply
+
+    const token0Min=(expectedAmount0 * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100);
+    const token1Min=(expectedAmount1 * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100);
+
+    const islandPoolContractAddress = opportunity.outputAssets[0]?.address;
+
+    if (!islandPoolContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    const poolRouterContractAddress = opportunity.contracts.find(
+        (contract) => contract.type === "invest",
+    )?.contractAddress;
+
+    if (!poolRouterContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    const data = encodeFunctionData({
+        abi: KodiakIslandRouterABI,
+        functionName: "removeLiquidity",
+        args: [
+            islandPoolContractAddress,
+            burnAmount,
+            token0Min,
+            token1Min,
+            userAddress
+        ],
+    });
+
+    const transaction = {
+        chainId: viemChain.id,
+        to: poolRouterContractAddress,
+        value: `0x${BigInt(0).toString(16)}`,
+        nonce,
+        data,
+    };
+
+    return { transaction, wait: client.waitForTransactionReceipt };
+}
+
+export async function createKodiakIslandApprovalTransaction(
+    opportunity: OpportunityData,
+    userAddress: string,
+    tokenInputs: TokenInput[],
+    nonceOffSet: number = 0,
+) {
+    const poolRouterContractAddress = opportunity.contracts.find(
+        (contract) => contract.type === "invest",
+    )?.contractAddress;
+
+    if (!poolRouterContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+    return createErc20ApprovalTransaction(
+        userAddress,
+        opportunity.chain,
+        tokenInputs[0]!,
+        poolRouterContractAddress as Address,
+        nonceOffSet
+    )
+}
+
+export async function validateKodiakIslandMint(
+    opportunity: OpportunityData,
+    tokenInputs: TokenInput[],
+    extraData: any[] = [],
+) {
+    console.log("validateKodiakIslandMint")
+    console.log(`extraData: ${JSON.stringify(extraData)}`);
+    //TODO: add kodiak island-specific validation
+    await genericValidateTokenInputs(opportunity, tokenInputs, "INVEST");
+}
+
+export async function validateKodiakIslandRedeem(
+    opportunity: OpportunityData,
+    tokenInputs: TokenInput[],
+    extraData: any[] = [],
+) {
+    console.log("validateKodiakIslandRedeem")
+    console.log(`extraData: ${JSON.stringify(extraData)}`);
+
+    console.log(`tokenInputs: ${JSON.stringify(tokenInputs)}`);
+    if(tokenInputs[0]?.amount === "0") {
+        throw new Error("Burn amount is 0");
+    }
+
+    //TODO: add kodiak island-specific validation
+    await genericValidateTokenInputs(opportunity, tokenInputs, "REDEEM");
+}
+
+export async function _getKodiakIslandTotalSupply(client: PublicClient, userAddress: string, opportunity: OpportunityData) {
+    const islandContractAddress = opportunity.outputAssets[0]?.address;
+    const totalSupplyResponse = await client.call({
+        account: userAddress as Address,
+        data: encodeFunctionData({
+            abi: KodiakIslandABI,
+            functionName: "totalSupply",
+            args: [],
+        }),
+        to: islandContractAddress as Address,
+    })
+
+    const totalSupply = decodeFunctionResult({
+        abi: KodiakIslandABI,
+        functionName: "totalSupply",
+        data: totalSupplyResponse.data!,
+    }) as bigint;
+
+    return totalSupply;
+}
+
+export async function _getKodiakIslandUnderlyingBalances(client: PublicClient, userAddress: string, opportunity: OpportunityData) {
+    const islandContractAddress = opportunity.outputAssets[0]?.address;
+    const underlyingBalancesResponse = await client.call({
+        account: userAddress as Address,
+        data: encodeFunctionData({
+            abi: KodiakIslandABI,
+            functionName: "getUnderlyingBalances",
+            args: [],
+        }),
+        to: islandContractAddress as Address,
+    })
+
+    const underlyingBalances = decodeFunctionResult({
+        abi: KodiakIslandABI,
+        functionName: "getUnderlyingBalances",
+        data: underlyingBalancesResponse.data!,
+    }) as bigint[];
+
+    return {
+        expectedAmount0: underlyingBalances[0],
+        expectedAmount1: underlyingBalances[1],
+    };
+}
+
+
+
+/*
 
 export async function createUniswapMintLPTransaction(
     opportunity: OpportunityData,
@@ -132,30 +375,47 @@ export async function createUniswapMintLPTransaction(
     return { transaction, wait: client.waitForTransactionReceipt };
 }
 
-export async function validateMintLP(
+export async function createUniswapInvestApprovalTransactions(
     opportunity: OpportunityData,
+    userAddress: string,
     tokenInputs: TokenInput[],
-    extraData: any[] = [],
+    nonceOffSet: number = 0,
 ) {
-    console.log("validateMintLP")
-    console.log(`extraData: ${JSON.stringify(extraData)}`);
-    //TODO: add uniswap-specific validation
-    const range = extraData[0];
-    if (!range) {
-        throw new Error("Range is required");
-    }
-
-    if (range.min < 0) {
-        throw new Error("Range is invalid");
-    }
-
-    if (range.min > range.max) {
-        throw new Error("Range is invalid");
-    }
-    //can add more validation here
-    //I need to get the current price of the pool via .slot0 of the pool contract to determine if the token ratio is correct
+    let txs = [];
     await genericValidateTokenInputs(opportunity, tokenInputs, "INVEST");
+    console.log(`tokenInputs: ${JSON.stringify(tokenInputs)}`);
+
+    const contractAddress = opportunity.contracts.find(
+        (contract) => contract.type === "invest",
+    )?.contractAddress;
+
+    if (!contractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    let nonceOffSetPerTx = nonceOffSet;
+    for (const tokenInput of tokenInputs) {
+        const inputAssetAddress = tokenInput.asset.address;
+
+        if (!inputAssetAddress) {
+            throw new Error("Invalid input asset address");
+        }
+
+        const erc20ApprovalTx = await createErc20ApprovalTransaction(
+            userAddress,
+            opportunity.chain,
+            tokenInput,
+            contractAddress as Address,
+            nonceOffSetPerTx,
+        );
+        txs.push(erc20ApprovalTx);
+        nonceOffSetPerTx++;
+    }
+
+    return txs;
 }
+
+
 
 interface PriceInfo {
     priceOf: string;//WETH
@@ -402,7 +662,6 @@ export async function validateUniswapCollectRewards(
     //can add more validation here
 }
 
-
 export async function createCollectRewardsTransaction(
     opportunity: OpportunityData,
     userAddress: string,
@@ -513,3 +772,4 @@ export async function createWithdrawTransaction(
 
     return { transaction, wait: client.waitForTransactionReceipt };
 }
+*/

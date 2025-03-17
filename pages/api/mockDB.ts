@@ -61,9 +61,9 @@ export interface OpportunityData {
   outputAssets: Asset[];
   apy: number;
   enabled: boolean;
-  withdrawalType: "AMOUNT" | "NFT";
+  withdrawalType: "AMOUNT_IN" | "AMOUNT_OUT" | "NFT";
   immediateWithdrawal: boolean;
-  type: "Lending" | "LP" | "Staking";
+  type: "Lending" | "LP" | "Staking" | "AutoLP";
   protocol: string;
   contracts: OpportunityContract[];
 }
@@ -155,6 +155,19 @@ const WETH_HONEY_LP_BERACHAIN = {
   decimals: 0,
   type: "ERC721",
 } as Asset;
+
+
+const WETH_HONEY_ISLAND_BERACHAIN = {
+  name: "Kodiak Island WETH-HONEY-0.3%",
+  symbol: "KODI WETH-HONEY",
+  isNative: false,
+  isFundingAsset: false,
+  address: "0xf6c6Be0FF6d6F70A04dBE4F1aDE62cB23053Bd95",
+  priceUSD: 0, // this would need to be obtained from uniswap v3
+  decimals: 18,
+  type: "ERC20",
+} as Asset;
+
 
 const aARBWETH = {
   name: "Aave Arbitrum WETH",
@@ -287,7 +300,7 @@ export const mockOpportunities: OpportunityData[] = [
     apy: 3.5,
     enabled: true,
     immediateWithdrawal: true,
-    withdrawalType: "AMOUNT",
+    withdrawalType: "AMOUNT_IN",
     type: "Lending",
     protocol: "Aave",
     contracts: [
@@ -306,7 +319,7 @@ export const mockOpportunities: OpportunityData[] = [
     apy: 5,
     enabled: true,
     immediateWithdrawal: true,
-    withdrawalType: "AMOUNT",
+    withdrawalType: "AMOUNT_IN",
     type: "Lending",
     protocol: "Aave",
     contracts: [
@@ -318,7 +331,7 @@ export const mockOpportunities: OpportunityData[] = [
   },
   {
     id: "5",
-    name: "Kodiak Berachain WETH - HONEY LP",
+    name: "Kodiak Berachain WETH - HONEY V3 LP",
     chain: "berachain",
     inputAssets: [WETH_BERACHAIN, HONEY_BERACHAIN],
     outputAssets: [WETH_HONEY_LP_BERACHAIN],
@@ -337,6 +350,25 @@ export const mockOpportunities: OpportunityData[] = [
         contractAddress: "0x9EB897D400f245E151daFD4c81176397D7798C9c",
         type: "UniswapV3Pool",
       },
+    ],
+  },
+  {
+    id: "6",
+    name: "Kodiak Berachain WETH - HONEY Island LP",
+    chain: "berachain",
+    inputAssets: [WETH_BERACHAIN, HONEY_BERACHAIN],
+    outputAssets: [WETH_HONEY_ISLAND_BERACHAIN],
+    apy: 40,
+    enabled: true,
+    immediateWithdrawal: true,
+    withdrawalType: "AMOUNT_OUT",
+    type: "AutoLP",
+    protocol: "Kodiak",
+    contracts: [
+      {
+        contractAddress: "0x679a7C63FC83b6A4D9C1F931891d705483d4791F",//Island Router
+        type: "invest",
+      }
     ],
   },
 ];

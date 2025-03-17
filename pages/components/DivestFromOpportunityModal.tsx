@@ -69,7 +69,7 @@ export default function DivestFromOpportunityModal({
         onCompleteDivest={onCompleteDivest}
       />
     );
-  } else if (isImmediateWithdrawal && opportunityWithdrawalType === "AMOUNT") {
+  } else if (isImmediateWithdrawal && (opportunityWithdrawalType === "AMOUNT_IN" || opportunityWithdrawalType === "AMOUNT_OUT")) {
     //Aave like
     return (
       <ImmediateAmountDivestModal

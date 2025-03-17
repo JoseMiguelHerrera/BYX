@@ -265,11 +265,22 @@ export default function Opportunities({
 
   //This one is for opportunities that can divest immediately
   const handleDivestSubmit = async (amounts: Record<string, string>) => {
+
+    console.log("amounts");
+    console.log(amounts);
+
     if (!selectedOpportunity) return;
+
+    const getRelevantAssets = () => {
+      if (!selectedOpportunity) return [];
+      return selectedOpportunity.withdrawalType === "AMOUNT_OUT" 
+        ? selectedOpportunity.outputAssets 
+        : selectedOpportunity.inputAssets;
+    };
 
     try {
       const accessToken = await getAccessToken();
-      const tokenInputs = selectedOpportunity.inputAssets.map((asset) => ({
+      const tokenInputs = getRelevantAssets().map((asset) => ({
         asset,
         amount: amounts[asset.symbol] || "0",
       }));
