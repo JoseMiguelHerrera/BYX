@@ -15,7 +15,7 @@ import { TokenInput, OpportunityData, RedeemStatus } from "../../mockDB";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
 
-const SLIPPAGE_PERCENTAGE = 5;//Crazy high, but this is not a real important parameter for LPing
+const SLIPPAGE_PERCENTAGE = 15;//Crazy high, but this is not a real important parameter for LPing
 
 interface MintLPArgs {
     islandContract: Address;
