@@ -90,6 +90,7 @@ export default function DivestFromOpportunityModal({
           opportunity={opportunity}
           userAddress={userAddress}
           onDivest={onDivest as (amounts: Record<string, string>) => void}
+          onCollectRewards={onCollectRewards as (positionId: string) => void}
         />
       );
     } catch (error) {

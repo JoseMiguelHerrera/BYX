@@ -97,7 +97,6 @@ export async function createInfraredStakeApprovalTransaction(
     )
 }
 
-
 export async function createInfraredWithdrawalTransaction(
     opportunity: OpportunityData,
     userAddress: string,
@@ -149,7 +148,47 @@ export async function createInfraredWithdrawalTransaction(
     return { transaction, wait: client.waitForTransactionReceipt };
 }
 
+export async function createInfraredCollectRewardsTransaction(
+    opportunity: OpportunityData,
+    userAddress: string,
+    tokenInputs: TokenInput[],
+    nonceOffSet: number = 0,
+    extraData: any[] = [],
+) {
+    console.log("createInfraredWithdrawalTransaction")
+    const viemChain = getViemChain(opportunity.chain);
+    const client = createPublicClient({
+        chain: viemChain,
+        transport: http(), // Use default RPC
+    });
+    const nonce =
+        (await client.getTransactionCount({ address: userAddress as Address })) +
+        nonceOffSet;
 
+    const vaultContractAddress = opportunity.contracts.find(
+        (contract) => contract.type === "invest",
+    )?.contractAddress;
+
+    if (!vaultContractAddress) {
+        throw new Error("Invalid contract address");
+    }
+
+    const data = encodeFunctionData({
+        abi: InfraredVaultABI,
+        functionName: "getReward",
+        args: [],
+    });
+
+    const transaction = {
+        chainId: viemChain.id,
+        to: vaultContractAddress,
+        value: `0x${BigInt(0).toString(16)}`,
+        nonce,
+        data,
+    };
+
+    return { transaction, wait: client.waitForTransactionReceipt };
+}
 
 export async function validateInfraredWithdrawal(
     opportunity: OpportunityData,

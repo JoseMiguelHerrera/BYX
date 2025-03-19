@@ -66,6 +66,7 @@ export interface OpportunityData {
   immediateWithdrawal: boolean;
   type: "Lending" | "LP" | "Staking" | "AutoLP" | "Vault";
   protocol: string;
+  hasCollectableRewards: boolean;
   contracts: OpportunityContract[];
 }
 
@@ -258,6 +259,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "NFT",
     type: "Staking",
     protocol: "Lido",
+    hasCollectableRewards: false,
     contracts: [
       {
         contractAddress: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
@@ -281,6 +283,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "NFT",
     type: "LP",
     protocol: "Uniswap",
+    hasCollectableRewards: true,
     contracts: [
       {
         contractAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
@@ -304,6 +307,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "AMOUNT_IN",
     type: "Lending",
     protocol: "Aave",
+    hasCollectableRewards: false,
     contracts: [
       {
         contractAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
@@ -323,6 +327,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "AMOUNT_IN",
     type: "Lending",
     protocol: "Aave",
+    hasCollectableRewards: false,
     contracts: [
       {
         contractAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
@@ -342,6 +347,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "NFT",
     type: "LP",
     protocol: "Kodiak",
+    hasCollectableRewards: true,
     contracts: [
       {
         contractAddress: "0xFE5E8C83FFE4d9627A75EaA7Fee864768dB989bD",
@@ -365,6 +371,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "AMOUNT_OUT",
     type: "AutoLP",
     protocol: "Kodiak",
+    hasCollectableRewards: false,//TODO: research if this is true or not.
     contracts: [
       {
         contractAddress: "0x679a7C63FC83b6A4D9C1F931891d705483d4791F",//Island Router
@@ -384,6 +391,7 @@ export const mockOpportunities: OpportunityData[] = [
     withdrawalType: "AMOUNT_IN",
     type: "Vault",
     protocol: "Infrared",
+    hasCollectableRewards: true,
     contracts: [
       {
         contractAddress: "0xba802c7233db63353151798662893ff2ed52cf33",

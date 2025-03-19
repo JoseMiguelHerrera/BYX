@@ -9,6 +9,7 @@ interface ImmediateAmountDivestModalProps {
   opportunity: OpportunityData | null;
   userAddress: string | null;
   onDivest: (amounts: Record<string, string>) => void;
+  onCollectRewards: (divestmentId: string) => void | null;
 }
 
 export default function ImmediateAmountDivestModal({
@@ -17,6 +18,7 @@ export default function ImmediateAmountDivestModal({
   opportunity,
   userAddress,
   onDivest,
+  onCollectRewards
 }: ImmediateAmountDivestModalProps) {
   const [assetAmounts, setAssetAmounts] = useState<Record<string, string>>({});
 
@@ -151,6 +153,15 @@ export default function ImmediateAmountDivestModal({
                   >
                     Cancel
                   </button>
+                  {opportunity.hasCollectableRewards && (
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                      onClick={() => onCollectRewards("0")}
+                    >
+                      Collect Rewards
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="inline-flex justify-center rounded-md border border-transparent bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"

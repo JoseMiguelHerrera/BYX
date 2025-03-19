@@ -21,7 +21,7 @@ import {
 } from "./aave/aave";
 import { createErc20ApprovalTransaction,createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
 import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
-import { createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
+import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -221,6 +221,14 @@ export async function createTransaction(
             extraData,
           );
           txs.push(collectRewardsTx5);
+          break;
+        case "7":
+          const infraredCollectRewardsTx = await createInfraredCollectRewardsTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts
+          );
+          txs.push(infraredCollectRewardsTx);
           break;
     }
   } else {
