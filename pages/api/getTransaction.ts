@@ -40,7 +40,18 @@ async function handler(
   const authToken = cookieAuthToken || headerAuthToken;
   if (!authToken) return res.status(401).json({ error: "Missing auth token" });
   try {
-    await client.verifyAuthToken(authToken);
+    const verifiedUser = await client.verifyAuthToken(authToken);
+    const userID=verifiedUser.userId;
+    const userObject = await client.getUserById(userID);
+    if(userObject.linkedAccounts.length === 0) {
+      return res.status(403).json({ error: "User has no linked accounts" });
+    }
+    const isUserWallet = userObject.linkedAccounts.some(
+      (linkedAccount: any) => linkedAccount.address.toLowerCase() === smartWalletAddress.toLowerCase()
+    );
+    if (!isUserWallet) {
+      return res.status(403).json({ error: "Not authorized to use this wallet address" });
+    }
     const opportunity = await getOpportunityData(opportunityId);
     if (!opportunity)
       return res.status(404).json({ error: "Opportunity not found" });

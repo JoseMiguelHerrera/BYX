@@ -34,14 +34,24 @@ export default function DivestFromOpportunityModal({
   onCompleteDivest,
   onCollectRewards,
 }: DivestFromOpportunityModalProps) {
-  if (!isOpen || !opportunity) return null;
-  console.log(opportunity);
+  console.log("DivestFromOpportunityModal called with isOpen:", isOpen);
+  if (!isOpen || !opportunity) {
+    console.log("Early return: !isOpen || !opportunity");
+    return null;
+  }
+  console.log("opportunity:", opportunity);
 
   const isImmediateWithdrawal = opportunity.immediateWithdrawal !== false;
+  console.log("isImmediateWithdrawal:", isImmediateWithdrawal);
+  
   const opportunityWithdrawalType = opportunity.withdrawalType;
+  console.log("opportunityWithdrawalType:", opportunityWithdrawalType);
 
+  console.log("Checking conditions...");
+  
   //uniswap like
   if (isImmediateWithdrawal && opportunityWithdrawalType === "NFT") {
+    console.log("Rendering ImmediateNFTDivestModal");
     return (
       <ImmediateNFTDivestModal
         isOpen={isOpen}
@@ -58,7 +68,7 @@ export default function DivestFromOpportunityModal({
     opportunityWithdrawalType === "NFT"
   ) {
     //Lido like
-    console.log("Request amount divest");
+    console.log("Rendering RequestAmountDivestModal");
     return (
       <RequestAmountDivestModal
         isOpen={isOpen}
@@ -71,16 +81,23 @@ export default function DivestFromOpportunityModal({
     );
   } else if (isImmediateWithdrawal && (opportunityWithdrawalType === "AMOUNT_IN" || opportunityWithdrawalType === "AMOUNT_OUT")) {
     //Aave like
-    return (
-      <ImmediateAmountDivestModal
-        isOpen={isOpen}
-        onClose={onClose}
-        opportunity={opportunity}
-        userAddress={userAddress}
-        onDivest={onDivest as (amounts: Record<string, string>) => void}
-      />
-    );
+    console.log("Rendering ImmediateAmountDivestModal");
+    try {
+      return (
+        <ImmediateAmountDivestModal
+          isOpen={isOpen}
+          onClose={onClose}
+          opportunity={opportunity}
+          userAddress={userAddress}
+          onDivest={onDivest as (amounts: Record<string, string>) => void}
+        />
+      );
+    } catch (error) {
+      console.error("Error rendering ImmediateAmountDivestModal:", error);
+      return <div>Error rendering divestment modal</div>;
+    }
   } else {
+    console.log("Rendering default 'does not support divestment' message");
     return (
       <div>
         <p>This opportunity does not support divestment.</p>

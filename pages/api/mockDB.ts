@@ -46,6 +46,7 @@ export enum TransactionType {
   Divest = "divest",
   RequestDivest = "requestDivest",
   CollectRewards = "collectRewards",
+  Withdraw = "withdraw",
 }
 
 export interface OpportunityContract {
@@ -63,7 +64,7 @@ export interface OpportunityData {
   enabled: boolean;
   withdrawalType: "AMOUNT_IN" | "AMOUNT_OUT" | "NFT";
   immediateWithdrawal: boolean;
-  type: "Lending" | "LP" | "Staking" | "AutoLP";
+  type: "Lending" | "LP" | "Staking" | "AutoLP" | "Vault";
   protocol: string;
   contracts: OpportunityContract[];
 }
@@ -367,6 +368,25 @@ export const mockOpportunities: OpportunityData[] = [
     contracts: [
       {
         contractAddress: "0x679a7C63FC83b6A4D9C1F931891d705483d4791F",//Island Router
+        type: "invest",
+      }
+    ],
+  },
+  {
+    id: "7",
+    name: "Infrared Berachain WETH - HONEY Island LP Vault",
+    chain: "berachain",
+    inputAssets: [WETH_HONEY_ISLAND_BERACHAIN],
+    outputAssets: [],
+    apy: 0,
+    enabled: true,
+    immediateWithdrawal: true,
+    withdrawalType: "AMOUNT_IN",
+    type: "Vault",
+    protocol: "Infrared",
+    contracts: [
+      {
+        contractAddress: "0xba802c7233db63353151798662893ff2ed52cf33",
         type: "invest",
       }
     ],

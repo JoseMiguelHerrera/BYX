@@ -21,6 +21,7 @@ import {
 } from "./aave/aave";
 import { createErc20ApprovalTransaction,createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
 import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
+import { createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -110,6 +111,19 @@ export async function createTransaction(
           );
           txs.push(...approvalTxs6, mintTx6);
           break;
+        case "7":
+          let approvalTx7 = await createInfraredStakeApprovalTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts,
+          );
+          let stakeTx7 = await createInfraredStakeTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts,
+            1
+          );
+          txs.push(approvalTx7,stakeTx7);
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -162,6 +176,14 @@ export async function createTransaction(
             extraData,
           );
           txs.push(approvalTx6, redeemTx6);
+          break;
+        case "7":
+          const infraredWithdrawalTx = await createInfraredWithdrawalTransaction(
+            opportunity,
+            userAddress,
+            inputAmounts
+          );
+          txs.push(infraredWithdrawalTx);
           break;
     }
   } else if (type === TransactionType.RequestDivest) {
