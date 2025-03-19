@@ -5,6 +5,7 @@ import Head from "next/head";
 import Funding from "./components/Funding";
 import Balances from "./components/Balances";
 import Opportunities from "./components/Opportunities";
+import Withdraw from "./components/Withdraw";
 
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState("dashboard");
@@ -101,6 +102,14 @@ export default function DashboardPage() {
                 Funding
               </button>
               <button
+                onClick={() => setActiveView("withdraw")}
+                className={`text-sm ${
+                  activeView === "withdraw" ? "bg-violet-700" : "bg-violet-600"
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
+              >
+                Withdraw
+              </button>
+              <button
                 onClick={() => setActiveView("opportunities")}
                 className={`text-sm ${
                   activeView === "opportunities"
@@ -124,6 +133,10 @@ export default function DashboardPage() {
                     />
                   ) : activeView === "opportunities" ? (
                     <Opportunities
+                      smartWalletAddress={embeddedWallet?.address || ""}
+                    />
+                  ) : activeView === "withdraw" ? (
+                    <Withdraw
                       smartWalletAddress={embeddedWallet?.address || ""}
                     />
                   ) : (
