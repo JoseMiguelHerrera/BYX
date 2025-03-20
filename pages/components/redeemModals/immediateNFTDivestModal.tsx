@@ -245,15 +245,17 @@ export default function ImmediateNFTDivestModal({
                                     >
                                       Finish Redeem
                                     </button>
-                                    <button
-                                      className="rounded-md px-3 py-1.5 text-sm font-medium bg-green-600 text-white hover:bg-green-700 ml-2"
-                                      onClick={() =>
-                                        onCollectRewards &&
-                                        onCollectRewards(status.requestId)
-                                      }
-                                    >
-                                      Get Rewards
-                                    </button>
+                                    {opportunity?.hasCollectableRewards && (
+                                      <button
+                                        className="rounded-md px-3 py-1.5 text-sm font-medium bg-green-600 text-white hover:bg-green-700 ml-2"
+                                        onClick={() =>
+                                          onCollectRewards &&
+                                          onCollectRewards(status.requestId)
+                                        }
+                                      >
+                                        Get Rewards
+                                      </button>
+                                    )}
                                   </td>
                                 </tr>
                               ))}
