@@ -1,6 +1,7 @@
 export interface ChainMetadata {
   id: string;
   name: string;
+  debankName: string;
   assets: Asset[];
 }
 
@@ -173,7 +174,7 @@ const WETH_HONEY_ISLAND_BERACHAIN = {
 
 const aARBWETH = {
   name: "Aave Arbitrum WETH",
-  symbol: "aARB-WETH",
+  symbol: "aArbWETH",
   isNative: false,
   isFundingAsset: false,
   address: "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
@@ -184,7 +185,7 @@ const aARBWETH = {
 
 const aARBUSDC = {
   name: "Aave Arbitrum USDC",
-  symbol: "aARB-USDC",
+  symbol: "aArbUSDCn",
   isNative: false,
   isFundingAsset: false,
   address: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
@@ -224,6 +225,7 @@ export const mockChains: ChainMetadata[] = [
   {
     id: "ethereum",
     name: "Ethereum",
+    debankName: "eth",
     assets: [
       //assets are the funding assets for the chain.
       ETH,
@@ -232,16 +234,19 @@ export const mockChains: ChainMetadata[] = [
   {
     id: "arbitrum",
     name: "Arbitrum",
+    debankName: "arb",
     assets: [ETH, USDC_ARBITRUM, WETH_ARBITRUM],
   },
   {
     id: "base",
     name: "Base",
+    debankName: "base",
     assets: [ETH],
   },
   {
     id: "berachain",
     name: "Berachain",
+    debankName: "bera",
     assets: [BERA,HONEY_BERACHAIN],
   },
 ];
@@ -388,7 +393,7 @@ export const mockOpportunities: OpportunityData[] = [
     apy: 0,
     enabled: true,
     immediateWithdrawal: true,
-    withdrawalType: "AMOUNT_IN",
+    withdrawalType: "AMOUNT_OUT",
     type: "Vault",
     protocol: "Infrared",
     hasCollectableRewards: true,
