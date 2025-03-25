@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
-import { Asset, mockOpportunities, TokenInput, TransactionType } from "./mockDB";
-import { createTransaction } from "./engine";
+import { Asset } from "./dataModels";
 import { withdraw } from "./engine/withdraw";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;

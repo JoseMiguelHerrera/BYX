@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getViemChain } from "../api/engine/chainPicker";
 import { toast } from "react-toastify";
-import { Asset, ChainMetadata } from "../api/mockDB";
+import { Asset, ChainMetadata } from "../api/dataModels";
 
 function generateWithdrawalObject(chain: ChainMetadata, asset: Asset, amount: string, recipientAddress: string) {
   return {

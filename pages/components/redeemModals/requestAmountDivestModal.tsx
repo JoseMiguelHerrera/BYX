@@ -1,7 +1,7 @@
 //lido
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState, useEffect } from "react";
-import { OpportunityData, RedeemStatus } from "../../api/mockDB";
+import { OpportunityData, RedeemStatus } from "../../api/dataModels";
 import { getAccessToken } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
 

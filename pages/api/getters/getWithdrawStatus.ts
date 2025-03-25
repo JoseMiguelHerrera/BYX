@@ -3,8 +3,7 @@ import { PrivyClient } from "@privy-io/server-auth";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
-import { mockOpportunities } from "../mockDB";
-//import { JSONStringify } from 'json-with-bigint';
+import { getOpportunityById } from "../../../database/queries";
 import { getWithdrawalStatus } from "../engine";
 
 export type Response = {
@@ -14,13 +13,6 @@ export type Response = {
 export type ErrorResponse = {
   error: string;
 };
-
-//will be from db at some point
-async function getOpportunityData(opportunityId: string) {
-  return mockOpportunities.find(
-    (opportunity) => opportunity.id === opportunityId,
-  );
-}
 
 async function handler(
   req: NextApiRequest,
@@ -38,7 +30,8 @@ async function handler(
   if (!authToken) return res.status(401).json({ error: "Missing auth token" });
   try {
     await client.verifyAuthToken(authToken);
-    const opportunity = await getOpportunityData(opportunityId);
+    const opportunity = await getOpportunityById(opportunityId);
+    
     if (!opportunity)
       return res.status(404).json({ error: "Opportunity not found" });
     const data = await getWithdrawalStatus(opportunity, userAddress);

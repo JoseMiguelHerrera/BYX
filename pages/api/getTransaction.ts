@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
-import { mockOpportunities, TokenInput, TransactionType } from "./mockDB";
+import { TokenInput, TransactionType } from "./dataModels";
 import { createTransaction } from "./engine";
-
+import { getOpportunityById } from "../../database/queries";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
@@ -15,12 +15,6 @@ export type BalanceErrorResponse = {
   error: string;
 };
 
-//will be from db at some point
-async function getOpportunityData(opportunityId: string) {
-  return mockOpportunities.find(
-    (opportunity) => opportunity.id === opportunityId,
-  );
-}
 
 async function handler(
   req: NextApiRequest,
@@ -52,7 +46,7 @@ async function handler(
     if (!isUserWallet) {
       return res.status(403).json({ error: "Not authorized to use this wallet address" });
     }
-    const opportunity = await getOpportunityData(opportunityId);
+    const opportunity = await getOpportunityById(opportunityId);
     if (!opportunity)
       return res.status(404).json({ error: "Opportunity not found" });
     const txHash = await createTransaction(

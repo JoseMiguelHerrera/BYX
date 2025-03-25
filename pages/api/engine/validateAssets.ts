@@ -1,4 +1,4 @@
-import { TokenInput, OpportunityData } from "../mockDB";
+import { TokenInput, OpportunityData } from "../dataModels";
 
 export async function genericValidateTokenInputs(
   opportunity: OpportunityData,
