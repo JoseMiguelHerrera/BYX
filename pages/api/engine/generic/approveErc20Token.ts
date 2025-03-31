@@ -7,7 +7,7 @@ import {
   encodeFunctionData,
   parseUnits,
 } from "viem";
-import { OpportunityData, TokenInput } from "../../mockDB";
+import { OpportunityData, TokenInput } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 
 export async function createErc20ApprovalTransaction(

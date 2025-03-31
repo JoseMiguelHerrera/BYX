@@ -1,6 +1,6 @@
 import { Chain, encodeFunctionData, http, parseUnits, PublicClient } from "viem";
 import { Address, createPublicClient } from "viem";
-import { Asset } from "../mockDB";
+import { Asset } from "../dataModels";
 import { getViemChain } from "./chainPicker";
 import { erc20ABI } from "../abis";
 import ServerSideTransactions from "./serverSideTransactions";

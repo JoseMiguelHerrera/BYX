@@ -8,13 +8,12 @@ import {
   getContract,
 } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
-import { mockChains } from "./mockDB";
-import { getViemChain } from "./engine/chainPicker";
 import { erc20ABI } from "./abis";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 import { getAllUserTokenList } from "../libs/debank";
+import { getChainMetadata } from "../../database/queries";
 export type BalanceSuccessResponse = {
   balances: {
     chain: string;
@@ -28,10 +27,6 @@ export type BalanceErrorResponse = {
   error: string;
 };
 
-//will be from db at some point
-async function getChainData() {
-  return mockChains;
-}
 
 async function getNativeAssetBalance(address: Address, viemChain: Chain) {
   const client = createPublicClient({
@@ -87,7 +82,7 @@ async function handler(
 }
 
 async function getBalancesFromDebank(address: Address){//When we have the database, this should be cached.
-  const chainsMetadata = await getChainData();
+  const chainsMetadata = await getChainMetadata();
 
   let balances: {
     chain: string;

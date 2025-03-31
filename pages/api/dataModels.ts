@@ -1,3 +1,4 @@
+
 export interface ChainMetadata {
   id: string;
   name: string;
@@ -19,7 +20,6 @@ export interface AssetBalance {
 export interface Asset {
   name: string;
   symbol: string;
-  isNative: boolean;
   isFundingAsset: boolean;
   address: string | null;
   priceUSD: number;
@@ -71,6 +71,8 @@ export interface OpportunityData {
   contracts: OpportunityContract[];
 }
 
+//Deprecatated mock data, to be deleted soon after testing everything is working.
+/*
 const ETH = {
   name: "Ethereum",
   symbol: "ETH",
@@ -85,7 +87,6 @@ const ETH = {
 const BERA = {
   name: "Bera",
   symbol: "BERA",
-  isNative: true,
   isFundingAsset: true,
   address: null,
   priceUSD: 5.55,
@@ -96,7 +97,6 @@ const BERA = {
 const USDC_BASIC = {
   name: "USDC",
   symbol: "USDC",
-  isNative: false,
   isFundingAsset: true,
   address: "",
   priceUSD: 1.0,
@@ -107,7 +107,6 @@ const USDC_BASIC = {
 const USDT_BASIC = {
   name: "USDT",
   symbol: "USDT",
-  isNative: false,
   isFundingAsset: true,
   address: "",
   priceUSD: 1.0,
@@ -118,7 +117,6 @@ const USDT_BASIC = {
 const WETH_BASIC = {
   name: "Wrapped Ethereum",
   symbol: "WETH",
-  isNative: false,
   isFundingAsset: true,
   address: null,
   priceUSD: 2226.21,
@@ -129,7 +127,6 @@ const WETH_BASIC = {
 const stETH_Ethereum = {
   name: "Lido Staked ETH",
   symbol: "stETH",
-  isNative: false,
   isFundingAsset: false,
   address: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
   priceUSD: 2700,
@@ -140,7 +137,6 @@ const stETH_Ethereum = {
 const WETH_USDC_LP_ARB = {
   name: "WETH-USDC LP",
   symbol: "WETH-USDC LP",
-  isNative: false,
   isFundingAsset: false,
   address: "", //TODO: add address
   priceUSD: 0, // this would need to be obtained from uniswap v3
@@ -151,7 +147,6 @@ const WETH_USDC_LP_ARB = {
 const WETH_HONEY_LP_BERACHAIN = {
   name: "WETH-HONEY LP",
   symbol: "WETH-HONEY LP",
-  isNative: false,
   isFundingAsset: false,
   address: "0xFE5E8C83FFE4d9627A75EaA7Fee864768dB989bD",
   priceUSD: 0, // this would need to be obtained from uniswap v3
@@ -163,7 +158,6 @@ const WETH_HONEY_LP_BERACHAIN = {
 const WETH_HONEY_ISLAND_BERACHAIN = {
   name: "Kodiak Island WETH-HONEY-0.3%",
   symbol: "KODI WETH-HONEY",
-  isNative: false,
   isFundingAsset: false,
   address: "0xf6c6Be0FF6d6F70A04dBE4F1aDE62cB23053Bd95",
   priceUSD: 0, // this would need to be obtained from uniswap v3
@@ -175,7 +169,6 @@ const WETH_HONEY_ISLAND_BERACHAIN = {
 const aARBWETH = {
   name: "Aave Arbitrum WETH",
   symbol: "aArbWETH",
-  isNative: false,
   isFundingAsset: false,
   address: "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
   priceUSD: 1850,
@@ -186,7 +179,6 @@ const aARBWETH = {
 const aARBUSDC = {
   name: "Aave Arbitrum USDC",
   symbol: "aArbUSDCn",
-  isNative: false,
   isFundingAsset: false,
   address: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
   priceUSD: 1,
@@ -197,7 +189,6 @@ const aARBUSDC = {
 const HONEY_BERACHAIN = {
   name: "Honey",
   symbol: "HONEY",
-  isNative: false,
   isFundingAsset: true,
   address: "0xfcbd14dc51f0a4d49d5e53c2e0950e0bc26d0dce",
   priceUSD: 1,
@@ -405,3 +396,4 @@ export const mockOpportunities: OpportunityData[] = [
     ],
   },
 ];
+*/

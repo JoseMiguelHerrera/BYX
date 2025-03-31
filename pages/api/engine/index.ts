@@ -5,7 +5,7 @@ import {
   getLidoWithdrawalRequests,
   createLidoWithdrawalTransaction,
 } from "./lido/lido";
-import { OpportunityData, TokenInput, TransactionType } from "../mockDB";
+import { OpportunityData, TokenInput, TransactionType } from "../dataModels";
 import ServerSideTransactions from "./serverSideTransactions";
 import {
   createCollectRewardsTransaction,

@@ -4,8 +4,8 @@ import { PrivyClient } from "@privy-io/server-auth";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
-import { mockOpportunities, OpportunityData } from "./mockDB";
-
+import { OpportunityData } from "./dataModels";
+import { getOpportunities } from "../../database/queries";
 export type OpportunitiesSuccessResponse = {
   opportunities: OpportunityData[];
 };
@@ -28,7 +28,8 @@ async function handler(
 
   try {
     await client.verifyAuthToken(authToken);
-    return res.status(200).json({ opportunities: mockOpportunities });
+    const opportunities = await getOpportunities();
+    return res.status(200).json({ opportunities });
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }

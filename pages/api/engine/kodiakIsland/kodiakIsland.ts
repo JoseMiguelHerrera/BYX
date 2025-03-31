@@ -11,7 +11,7 @@ import {
     decodeFunctionResult,
     PublicClient,
 } from "viem";
-import { TokenInput, OpportunityData, RedeemStatus } from "../../mockDB";
+import { TokenInput, OpportunityData, RedeemStatus } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
 

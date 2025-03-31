@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useFundWallet } from "@privy-io/react-auth";
 import { getViemChain } from "../api/engine/chainPicker";
 import { toast } from "react-toastify";
-import { Asset, ChainMetadata } from "../api/mockDB";
+import { Asset, ChainMetadata } from "../api/dataModels";
 
 function generateFundingObject(chain: ChainMetadata, asset: Asset) {
   let viemChain = getViemChain(chain.id);
