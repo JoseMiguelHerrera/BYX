@@ -1,9 +1,11 @@
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { ChainMetadata, Asset, OpportunityData, OpportunityContract } from "../pages/api/dataModels";
-import { eq, asc, and, gt, sql } from "drizzle-orm";
+import { eq} from "drizzle-orm";
 import * as schema from "./schema";
+import {Transaction} from "../pages/api/dataModels"
 import dotenv from "dotenv";
+import { transactions, transactionAssets, opportunityAssets } from "./schema";
 dotenv.config();
 
 let db: PostgresJsDatabase<typeof schema> | null = null;
@@ -58,7 +60,6 @@ export async function dbCleanup(): Promise<void> {
   }
 }
 
-
 export async function getChainMetadata(): Promise<ChainMetadata[]> {
   const db = await getDB();
   
@@ -98,6 +99,7 @@ export async function getChainMetadata(): Promise<ChainMetadata[]> {
     if (row.assetId) {
       const chain = chainsMap.get(row.chainId)!;
       chain.assets.push({
+        id: row.assetId,
         name: row.assetName as string,
         symbol: row.assetSymbol as string,
         isFundingAsset: row.assetIsFundingAsset as boolean,
@@ -140,6 +142,7 @@ export async function getOpportunityById(opportunityId: string): Promise<Opportu
   const opportunityAssets = await db
     .select({
       role: schema.opportunityAssets.role,
+      assetId: schema.assets.id,
       assetName: schema.assets.name,
       assetSymbol: schema.assets.symbol,
       assetIsFundingAsset: schema.assets.isFundingAsset,
@@ -167,6 +170,7 @@ export async function getOpportunityById(opportunityId: string): Promise<Opportu
 
   for (const asset of opportunityAssets) {
     const assetObj: Asset = {
+      id: asset.assetId as string,
       name: asset.assetName as string,
       symbol: asset.assetSymbol as string,
       isFundingAsset: asset.assetIsFundingAsset as boolean,
@@ -228,6 +232,7 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
     .select({
       opportunityId: schema.opportunityAssets.opportunityId,
       role: schema.opportunityAssets.role,
+      assetId: schema.assets.id,
       assetName: schema.assets.name,
       assetSymbol: schema.assets.symbol,
       assetIsFundingAsset: schema.assets.isFundingAsset,
@@ -259,6 +264,7 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
     }
     
     const assetObj: Asset = {
+      id: asset.assetId as string,
       name: asset.assetName as string,
       symbol: asset.assetSymbol as string,
       isFundingAsset: asset.assetIsFundingAsset as boolean,
@@ -305,4 +311,60 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
   }));
 }
 
+
+//TODO: to fix this, I need to better align the models and the database schema -> more specifically, the Assets need to have an ID in the model.
+//Work in progress
+export async function writeTransactions(transactions: Transaction[]) {
+  const db = await getDB();
+
+  return await db.transaction(async (tx) => {
+    // First insert all transactions
+    await tx.insert(schema.transactions).values(transactions.map(tx => ({
+      id: tx.id,
+      userId: tx.userId,
+      userAddress: tx.userAddress,
+      type: tx.type,
+      opportunityId: tx.opportunityId,
+      transactionHash: tx.transactionHash,
+      createdAt: new Date(tx.createdAt),
+    })));
+
+    // Get all opportunity asset IDs we need
+    const opportunityAssetRows = await tx
+      .select({
+        id: opportunityAssets.id,
+        opportunityId: opportunityAssets.opportunityId,
+        assetId: opportunityAssets.assetId,
+        role: opportunityAssets.role
+      })
+      .from(opportunityAssets);
+
+    // Map opportunity asset IDs to their corresponding transactions
+    const assetValues = transactions.flatMap(tx => [
+      ...tx.inputAssets.map(asset => ({
+        transactionId: tx.id,
+        opportunityAssetId:"TST"/*opportunityAssetRows.find(row => 
+          row.opportunityId === tx.opportunityId && 
+          row.assetId === asset.asset.id && 
+          row.role === 'input'
+        )?.id*/,
+        amount: asset.amount,
+      })),
+      ...tx.outputAssets.map(asset => ({
+        transactionId: tx.id,
+        opportunityAssetId: "TEST"/*opportunityAssetRows.find(row => 
+          row.opportunityId === tx.opportunityId && 
+          row.assetId === asset.asset.id && 
+          row.role === 'output'
+        )?.id*/,
+        amount: asset.amount,
+      }))
+    ]);
+
+    // Insert all transaction assets
+    if (assetValues.length > 0) {
+      await tx.insert(schema.transactionAssets).values(assetValues);
+    }
+  });
+}
 
