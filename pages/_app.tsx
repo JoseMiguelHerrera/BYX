@@ -45,6 +45,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <PrivyProvider
         appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
         config={{
+          appearance: {
+            walletList : ['detected_wallets','metamask','coinbase_wallet','rainbow']
+          },
           embeddedWallets: {
             createOnLogin: "all-users",
           },

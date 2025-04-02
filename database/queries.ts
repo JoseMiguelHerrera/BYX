@@ -343,20 +343,20 @@ export async function writeTransactions(transactions: Transaction[]) {
     const assetValues = transactions.flatMap(tx => [
       ...tx.inputAssets.map(asset => ({
         transactionId: tx.id,
-        opportunityAssetId:"TST"/*opportunityAssetRows.find(row => 
+        opportunityAssetId:opportunityAssetRows.find(row => 
           row.opportunityId === tx.opportunityId && 
           row.assetId === asset.asset.id && 
           row.role === 'input'
-        )?.id*/,
+        )?.id as string,
         amount: asset.amount,
       })),
       ...tx.outputAssets.map(asset => ({
         transactionId: tx.id,
-        opportunityAssetId: "TEST"/*opportunityAssetRows.find(row => 
+        opportunityAssetId: opportunityAssetRows.find(row => 
           row.opportunityId === tx.opportunityId && 
           row.assetId === asset.asset.id && 
           row.role === 'output'
-        )?.id*/,
+        )?.id as string,
         amount: asset.amount,
       }))
     ]);
