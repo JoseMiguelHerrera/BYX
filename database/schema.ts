@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
-import { integer, text, boolean, pgSchema } from "drizzle-orm/pg-core";
+import {sql} from "drizzle-orm";
+import { integer, text, boolean, pgSchema, timestamp } from "drizzle-orm/pg-core";
 
 
 export const schema = pgSchema(process.env.DB_SCHEMA as string);
@@ -77,3 +78,35 @@ export const opportunitySmartContracts = schema.table(
       type: text("type", { enum: ["invest", "divest", "UniswapV3Pool"] }).notNull(),
     }
   );
+
+export const transactions = schema.table(
+  "byx_transactions",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").notNull(),
+    userAddress: text("user_address").notNull(),
+    type: text("type", { enum: ["invest", "divest", "requestDivest", "collectRewards", "withdraw", "funding"] }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
+    transactionHash: text("transaction_hash").notNull(),
+    
+  }
+);
+
+export const transactionAssets = schema.table(
+  "byx_transaction_assets",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    transactionId: text("transaction_id").notNull().references(() => transactions.id),
+    opportunityAssetId: text("opportunity_asset_id").notNull().references(() => opportunityAssets.id),
+    amount: text("amount").notNull(),
+  },
+  (table) => [
+    {
+      opportunityMatch: sql`check (
+        (SELECT opportunity_id FROM byx_transactions WHERE id = ${table.transactionId}) = 
+        (SELECT opportunity_id FROM byx_opportunity_assets WHERE id = ${table.opportunityAssetId})
+      )`
+    }
+  ]
+);

@@ -245,6 +245,7 @@ export async function createTransaction(
       userAddress,
       txs,
     );
+    //TODO: return input and output assets here.
   }
 }
 

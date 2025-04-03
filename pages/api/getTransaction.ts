@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
-import { TokenInput, TransactionType } from "./dataModels";
+import { AssetAmount, TokenInput, TransactionType } from "./dataModels";
 import { createTransaction } from "./engine";
-import { getOpportunityById } from "../../database/queries";
+import { getOpportunityById,writeTransactions } from "../../database/queries";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
@@ -56,8 +56,18 @@ async function handler(
       type,
       extraData,
     );
-
-    return res.status(200).json({ transaction: txHash });
+    await writeTransactions([{
+      id: crypto.randomUUID(),
+      userId: userID,
+      userAddress: smartWalletAddress,
+      type: type,
+      opportunityId: opportunityId,
+      inputAssets: [],//TODO: we need to get the input assets from createTransaction
+      outputAssets: [],//TODO: we need to get the output assets from createTransaction
+      createdAt: Date.now(),
+      transactionHash: txHash[txHash.length-1]as string,//rule of thumb: the last transaction is the one that creates the transaction
+    }])
+    return res.status(200).json({ transaction: txHash[txHash.length-1] });
   } catch (e: any) {
     console.log(e);
     return res.status(500).json({ error: e.message });
