@@ -3,6 +3,7 @@ import { PrivyClient } from "@privy-io/server-auth";
 import { AssetAmount, TokenInput, TransactionType } from "./dataModels";
 import { createTransaction } from "./engine";
 import { getOpportunityById,writeTransactions } from "../../database/queries";
+import { NextRequest, NextResponse } from "next/server";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
@@ -16,13 +17,10 @@ export type BalanceErrorResponse = {
 };
 
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<BalanceSuccessResponse | BalanceErrorResponse>,
-) {
-  const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
-  const cookieAuthToken = req.cookies["privy-token"];
-  const body = req.body;
+export async function GET(req: NextRequest) {
+  const headerAuthToken = req.headers.get("authorization")?.replace(/^Bearer /, "");
+  const cookieAuthToken = req.cookies.get("privy-token")?.value;
+  const body = await req.json();
 
   const smartWalletAddress = body.smartWalletAddress;
   const opportunityId = body.opportunityId;
@@ -32,23 +30,23 @@ async function handler(
   const extraData = body.extraData as any[] | undefined;
 
   const authToken = cookieAuthToken || headerAuthToken;
-  if (!authToken) return res.status(401).json({ error: "Missing auth token" });
+  if (!authToken) return NextResponse.json({ error: "Missing auth token" }, { status: 401 });
   try {
     const verifiedUser = await client.verifyAuthToken(authToken);
     const userID=verifiedUser.userId;
     const userObject = await client.getUserById(userID);
     if(userObject.linkedAccounts.length === 0) {
-      return res.status(403).json({ error: "User has no linked accounts" });
+      return NextResponse.json({ error: "User has no linked accounts" }, { status: 403 });
     }
     const isUserWallet = userObject.linkedAccounts.some(
       (linkedAccount: any) => linkedAccount.address.toLowerCase() === smartWalletAddress.toLowerCase()
     );
     if (!isUserWallet) {
-      return res.status(403).json({ error: "Not authorized to use this wallet address" });
+      return NextResponse.json({ error: "Not authorized to use this wallet address" }, { status: 403 });
     }
     const opportunity = await getOpportunityById(opportunityId);
     if (!opportunity)
-      return res.status(404).json({ error: "Opportunity not found" });
+      return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
     const txHash = await createTransaction(
       opportunity,
       smartWalletAddress,
@@ -67,10 +65,10 @@ async function handler(
       createdAt: Date.now(),
       transactionHash: txHash[txHash.length-1]as string,//rule of thumb: the last transaction is the one that creates the transaction
     }])
-    return res.status(200).json({ transaction: txHash[txHash.length-1] });
+    return NextResponse.json({ transaction: txHash[txHash.length-1] }, { status: 200 });
   } catch (e: any) {
     console.log(e);
-    return res.status(500).json({ error: e.message });
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
 
@@ -81,5 +79,3 @@ export const config = {
     externalResolver: true, // This tells Next.js this route might take longer to resolve
   },
 };
-
-export default handler;
