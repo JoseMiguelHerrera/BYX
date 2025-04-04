@@ -14,7 +14,7 @@ module.exports = {
         'privy-blueish': '#D4D9FC',
         'privy-pink': '#FF8271',
 
-        'background': '#3B4464',
+        'background': '#000000',
         'foreground': '#FFFFFF',
         'foreground-secondary': '#A3A3A3',
         'widget-background': '#0B0C10',
