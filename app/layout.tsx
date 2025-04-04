@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   description: "Welcome to Next.js",
 };
 
+import { JetBrains_Mono } from 'next/font/google';
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+});
+
+
 export default function RootLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
@@ -16,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${jetbrainsMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>
