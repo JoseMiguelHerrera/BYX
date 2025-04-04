@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { cookies } from "next/headers";
 import {
   createPublicClient,
@@ -10,12 +9,12 @@ import {
 } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
 import { erc20ABI } from "../abis";
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
-const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 import { getAllUserTokenList } from "@/libs/debank";
 import { getChainMetadata } from "../../../database/queries";
 import { NextRequest, NextResponse } from "next/server";
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
+const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 export type BalanceSuccessResponse = {
   balances: {
     chain: string;
