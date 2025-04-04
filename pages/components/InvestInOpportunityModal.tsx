@@ -1,10 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState, useEffect } from "react";
-import { OpportunityData } from "../api/dataModels";
+import { OpportunityData } from "@/app/api/dataModels";
 import React from "react";
 import { getAccessToken } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
-import { getToken1AmountFromToken0Amount, getToken0AmountFromToken1Amount } from "../libs/uniswapAmountCalculator";
+import { getToken1AmountFromToken0Amount, getToken0AmountFromToken1Amount } from "@/libs/uniswapAmountCalculator";
 
 interface InvestInOpportunityModalProps {
   isOpen: boolean;

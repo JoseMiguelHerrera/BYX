@@ -1,9 +1,9 @@
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { ChainMetadata, Asset, OpportunityData, OpportunityContract } from "../pages/api/dataModels";
+import { ChainMetadata, Asset, OpportunityData, OpportunityContract } from "@/app/api/dataModels";
 import { eq} from "drizzle-orm";
 import * as schema from "./schema";
-import {Transaction} from "../pages/api/dataModels"
+import {Transaction} from "@/app/api/dataModels"
 import dotenv from "dotenv";
 import { transactions, transactionAssets, opportunityAssets } from "./schema";
 dotenv.config();
@@ -21,6 +21,10 @@ export async function getDB(): Promise<
     //local defaults for a local db instance
     console.log("connected to local database");
     connection = postgres({
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT as string),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
     });
   } else {
