@@ -8,7 +8,7 @@ function Tab({ tab, active, onClick }: { tab: string; active: boolean; onClick: 
   return (
     <div
       className={cn(
-        "w-[256px] pl-3 pr-2 py-2 h-12 uppercase flex items-center",
+        "w-[256px] pl-3 pr-2 py-2 h-12 uppercase flex items-center text-xs",
         "flex justify-between",
         "rounded-t-[8px] cursor-pointer",
         active && "bg-off-black",
