@@ -1,6 +1,7 @@
 import PriceTicker from "@/components/PriceTicker";
 import { cn } from "@/utils/classnames";
 import PageTabs from "./components/PageTabs";
+import MarketHeader from "./components/MarketHeader";
 
 function MarketPage() {
   return (
@@ -9,6 +10,7 @@ function MarketPage() {
         <PriceTicker />
       </div>
       <PageTabs />
+      <MarketHeader />
     </div>
   );
 }
