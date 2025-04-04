@@ -16,3 +16,11 @@ export enum OrderAction {
   Withdraw = 'Withdraw',
   Harvest = 'Harvest',
 }
+
+export enum PositionsTab {
+  Balances = 'Balances',
+  Positions = 'Positions',
+  OpenOrders = 'Open Orders',
+  OrderHistory = 'Order History',
+  FundingHistory = 'Funding History',
+}

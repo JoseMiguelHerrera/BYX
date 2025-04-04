@@ -2,12 +2,11 @@
 import Block from "@/components/Block";
 import { cn } from "@/utils/classnames";
 import React from "react";
-import OrderItem from "./OrderItem";
 import { OrderType } from "@/types";
 import OrderTypes from "./OrderTypes";
 import OrderActions from "./OrderActions";
 import Input from "@/components/Input";
-import Image from "next/image";
+import TabItem from "@/components/TabItem";
 function OrderPanel() {
   const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType>(
     OrderType.Market
@@ -17,8 +16,8 @@ function OrderPanel() {
     <Block border padding={false} className={cn("flex flex-col relative")}>
       {/* Top header */}
       <div className={cn("w-full grid grid-cols-2")}>
-        <OrderItem active>Order Ticket</OrderItem>
-        <OrderItem>Manage</OrderItem>
+        <TabItem active>Order Ticket</TabItem>
+        <TabItem>Manage</TabItem>
       </div>
 
       {/* Content  */}

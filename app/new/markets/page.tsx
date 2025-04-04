@@ -3,6 +3,7 @@ import { cn } from "@/utils/classnames";
 import PageTabs from "./components/PageTabs";
 import MarketHeader from "./components/MarketHeader";
 import OrderPanel from "./components/OrderPanel";
+import PositionsAndOrders from "./components/PositionsAndOrders";
 
 function MarketPage() {
   return (
@@ -17,7 +18,9 @@ function MarketPage() {
           <div>COMPONENTS</div>
           <OrderPanel />
         </div>
-        <div>POSITIONS</div>
+        <div>
+          <PositionsAndOrders />
+        </div>
       </div>
     </div>
   );
