@@ -17,7 +17,7 @@ module.exports = {
         'background': '#000000',
         'foreground': '#FFFFFF',
         'foreground-secondary': '#A3A3A3',
-        'widget-background': '#0B0C10',
+        'off-black': '#0B0C10',
         'primary': '#B76E79',
         'red': '#E2464A',
         'green': '#2FA766',
