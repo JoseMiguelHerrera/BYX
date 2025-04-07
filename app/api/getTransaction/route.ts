@@ -16,7 +16,7 @@ export type BalanceErrorResponse = {
 };
 
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const headerAuthToken = req.headers.get("authorization")?.replace(/^Bearer /, "");
   const cookieAuthToken = req.cookies.get("privy-token")?.value;
   const body = await req.json();
