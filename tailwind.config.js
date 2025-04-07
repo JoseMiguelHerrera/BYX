@@ -1,5 +1,13 @@
+const forms = require('@tailwindcss/forms');
+
 module.exports = {
-  content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
+    './src/**/*.{js,ts,jsx,tsx}',
+    './pages/components/**/*.{js,ts,jsx,tsx}'  // Explicitly include nested components
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -13,5 +21,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 };

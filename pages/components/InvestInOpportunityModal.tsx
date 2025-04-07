@@ -368,7 +368,7 @@ export default function InvestInOpportunityModal({
                                       parseFloat(e.target.value),
                                     )
                                   }
-                                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-4"
+                                  className="form-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-4"
                                 />
                               </div>
                             </div>
@@ -390,7 +390,7 @@ export default function InvestInOpportunityModal({
                             type="number"
                             name={`amount-${asset.symbol}`}
                             id={`amount-${asset.symbol}`}
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm"
+                            className="py-2 px-3 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
                             placeholder={`Enter ${asset.symbol} amount`}
                             step="any"
                             min="0"
