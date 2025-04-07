@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useFundWallet } from "@privy-io/react-auth";
-import { getViemChain } from "../api/engine/chainPicker";
+import { getViemChain } from "@/app/api/engine/chainPicker";
 import { toast } from "react-toastify";
-import { Asset, ChainMetadata } from "../api/dataModels";
+import { Asset, ChainMetadata } from "@/app/api/dataModels";
 
 function generateFundingObject(chain: ChainMetadata, asset: Asset) {
   let viemChain = getViemChain(chain.id);

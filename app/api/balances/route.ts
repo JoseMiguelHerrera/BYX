@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { cookies } from "next/headers";
 import {
   createPublicClient,
   http,
@@ -8,12 +8,13 @@ import {
   getContract,
 } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
-import { erc20ABI } from "./abis";
+import { erc20ABI } from "../abis";
+import { getAllUserTokenList } from "@/libs/debank";
+import { getChainMetadata } from "../../../database/queries";
+import { NextRequest, NextResponse } from "next/server";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
-import { getAllUserTokenList } from "../libs/debank";
-import { getChainMetadata } from "../../database/queries";
 export type BalanceSuccessResponse = {
   balances: {
     chain: string;
@@ -26,7 +27,6 @@ export type BalanceSuccessResponse = {
 export type BalanceErrorResponse = {
   error: string;
 };
-
 
 async function getNativeAssetBalance(address: Address, viemChain: Chain) {
   const client = createPublicClient({
@@ -41,7 +41,7 @@ async function getNativeAssetBalance(address: Address, viemChain: Chain) {
 async function getERC20Balance(
   address: Address,
   viemChain: Chain,
-  assetAddress: string,
+  assetAddress: string
 ) {
   const client = createPublicClient({
     chain: viemChain,
@@ -59,29 +59,8 @@ async function getERC20Balance(
   return formatUnits(balance, decimals);
 }
 
-
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<BalanceSuccessResponse | BalanceErrorResponse>,
-) {
-  const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
-  const cookieAuthToken = req.cookies["privy-token"];
-  const address = req.body.address;
-
-  const authToken = cookieAuthToken || headerAuthToken;
-  if (!authToken) return res.status(401).json({ error: "Missing auth token" });
-  try {
-    await client.verifyAuthToken(authToken);
-
-    const balances = await getBalancesFromDebank(address);
-
-    return res.status(200).json({ balances: balances });
-  } catch (e: any) {
-    return res.status(500).json({ error: e.message });
-  }
-}
-
-async function getBalancesFromDebank(address: Address){//When we have the database, this should be cached.
+async function getBalancesFromDebank(address: Address) {
+  //When we have the database, this should be cached.
   const chainsMetadata = await getChainMetadata();
 
   let balances: {
@@ -90,22 +69,28 @@ async function getBalancesFromDebank(address: Address){//When we have the databa
     symbol: string;
     usdValue: number;
   }[] = [];
-    const debankTokenList = await getAllUserTokenList(address);
+  const debankTokenList = await getAllUserTokenList(address);
   for (const chainMetadata of chainsMetadata) {
     for (const asset of chainMetadata.assets) {
       try {
-        const debankTokenInfo = debankTokenList.find((debankTokenEntry:any) => debankTokenEntry.chain === chainMetadata.debankName && debankTokenEntry.symbol === asset.symbol);
-        if(!debankTokenInfo){
-          throw new Error(`Token ${asset.symbol} in chain ${chainMetadata.name} not found in debank`);
+        const debankTokenInfo = debankTokenList.find(
+          (debankTokenEntry: any) =>
+            debankTokenEntry.chain === chainMetadata.debankName &&
+            debankTokenEntry.symbol === asset.symbol
+        );
+        if (!debankTokenInfo) {
+          throw new Error(
+            `Token ${asset.symbol} in chain ${chainMetadata.name} not found in debank`
+          );
         }
-        const usdValue = debankTokenInfo.price* debankTokenInfo.amount;
+        const usdValue = debankTokenInfo.price * debankTokenInfo.amount;
         balances.push({
           chain: chainMetadata.name,
           balance: debankTokenInfo.amount.toString(),
           symbol: asset.symbol,
           usdValue: usdValue,
         });
-      } catch (e:any) { 
+      } catch (e: any) {
         console.log(e.message);
         balances.push({
           chain: chainMetadata.name,
@@ -117,6 +102,36 @@ async function getBalancesFromDebank(address: Address){//When we have the databa
     }
   }
   return balances;
+}
+
+export async function POST(req: NextRequest) {
+  // const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
+  try {
+    const headerAuthToken = req.headers
+      .get("authorization")
+      ?.replace(/^Bearer /, "");
+    const cookieStore = await cookies();
+    const cookieAuthToken = cookieStore.get("privy-token")?.value;
+    const body = await req.json()
+    console.log('BODY', body)
+    const address = body.address;
+
+    const authToken = cookieAuthToken || headerAuthToken;
+    if (!authToken)
+      return NextResponse.json(
+        { error: "Missing auth token" },
+        { status: 401 }
+      );
+
+    await client.verifyAuthToken(authToken);
+
+    const balances = await getBalancesFromDebank(address);
+
+    return NextResponse.json({ balances: balances });
+  } catch (e: any) {
+    console.log(e)
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }
 
 //Deprecated for now.
@@ -169,6 +184,4 @@ async function getBalancesFromBlockchain(address: Address){
   }
   return balances;
 }
-*/ 
-
-export default handler;
+*/
