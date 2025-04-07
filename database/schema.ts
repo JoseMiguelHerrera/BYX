@@ -3,9 +3,6 @@ dotenv.config();
 import {sql} from "drizzle-orm";
 import { integer, text, boolean, pgSchema, timestamp } from "drizzle-orm/pg-core";
 
-
-console.log('schema', process.env.DB_SCHEMA)
-
 export const schema = pgSchema(process.env.DB_SCHEMA as string);
 
 export const assets = schema.table(
