@@ -19,7 +19,7 @@ function OrderActions() {
           <button
             className={cn(
               "text-sm text-foreground-secondary font-medium",
-              "transition-all duration-100 cursor-pointer",
+              "transition-all duration-100 cursor-pointer delay-300",
               'select-none',
               "z-10 relative",
               isActive && "text-foreground",

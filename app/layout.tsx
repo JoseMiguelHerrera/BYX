@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Providers from "./providers";
 import "@/styles/globals.css";
 
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+
 export const metadata: Metadata = {
   title: "Home",
   description: "Welcome to Next.js",

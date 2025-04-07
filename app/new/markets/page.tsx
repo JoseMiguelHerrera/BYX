@@ -4,6 +4,7 @@ import PageTabs from "./components/PageTabs";
 import MarketHeader from "./components/MarketHeader";
 import OrderPanel from "./components/OrderPanel";
 import PositionsAndOrders from "./components/PositionsAndOrders";
+import MarketComponents from "@/components/containers/MarketComponents";
 
 function MarketPage() {
   return (
@@ -15,7 +16,7 @@ function MarketPage() {
       <MarketHeader />
       <div className={cn("flex flex-col gap-4 mt-4")}>
         <div className={cn("grid grid-cols-[1fr_340px] gap-4")}>
-          <div>COMPONENTS</div>
+          <div><MarketComponents /></div>
           <OrderPanel />
         </div>
         <div>
