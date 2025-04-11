@@ -10,6 +10,7 @@ function NewLayout({ children }: { children: React.ReactNode }) {
       <div className={cn('px-4')}>
       {children}
       </div>
+      <div id="modal-root" />
     </div>
   );
 }

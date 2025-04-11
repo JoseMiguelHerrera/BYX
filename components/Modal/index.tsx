@@ -1,6 +1,8 @@
 import { cn } from "@/utils/classnames";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 
 type ModalProps = {
   isOpen: boolean;
@@ -35,36 +37,42 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
   if (!isOpen && !show) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          isOpen ? "opacity-50" : "opacity-0"
-        }`}
-        onClick={onClose}
-      />
-
-      {/* Modal Content */}
-      <div
-        className={cn(
-          "relative z-10 rounded-lg p-6 shadow-lg transform transition-opacity duration-300",
-          'text-foreground',
-          className,
-          isOpen ? "opacity-100" : "opacity-0"
-        )}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       >
-        <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-black"
+        {/* Overlay */}
+        <div
+          className={`absolute inset-0 bg-black opacity-50`}
           onClick={onClose}
+        />
+
+        {/* Modal Content */}
+        <div
+          className={cn(
+            "relative z-10 rounded-lg p-6 shadow-lg transform transition-opacity duration-300",
+            "text-foreground flex w-fit flex-col",
+            className,
+          )}
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
         >
-          &times;
-        </button>
-        {children}
-      </div>
-    </div>,
-    document.body
+          <div className={cn("w-full flex justify-end")}>
+            <button
+              className="text-gray-500 hover:text-black"
+              onClick={onClose}
+            >
+              <Image src="/svg/close.svg" alt="Close" width={16} height={16} />
+            </button>
+          </div>
+          {children}
+        </div>
+      </motion.div>
+    </AnimatePresence>,
+    document.getElementById("modal-root") as HTMLElement
   );
 };

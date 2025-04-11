@@ -6,12 +6,8 @@ import MarketHeader from "./components/MarketHeader";
 import OrderPanel from "./components/OrderPanel";
 import PositionsAndOrders from "./components/PositionsAndOrders";
 import MarketComponents from "@/components/containers/MarketComponents";
-import useOpportunities from "@/app/hooks/useOpportunities";
 
 function MarketPage() {
-  const { opportunities, isLoading, error } = useOpportunities();
-
-  console.log(opportunities, isLoading, error);
   return (
     <div className={cn("flex flex-col")}>
       <div className={cn("px-2")}>

@@ -17,8 +17,8 @@ function TabItem({
       className={cn(
         'select-none',
         "flex items-center justify-center h-[53px] text-base font-extrabold text-foreground/30 cursor-pointer",
-        'hover:text-foreground transition-all duration-200 border-primary',
-        active && "border-b border-solid border-primary text-foreground",
+        'hover:text-foreground transition-all duration-200 border-b border-solid border-transparent',
+        active && "border-primary text-foreground",
         active && 'bg-linear-to-t from-[var(--color-order-panel-bottom)] to-[var(--color-order-panel-top)]  ',
         className
       )}

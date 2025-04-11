@@ -2,7 +2,6 @@
 import Block from "@/components/Block";
 import { cn } from "@/utils/classnames";
 import React from "react";
-import Image from "next/image";
 import useOpportunitiesStore from "@/store/opportunities";
 import useActiveOpportunity from "@/app/hooks/useActiveOpportunity";
 
@@ -11,8 +10,6 @@ import StarIcon from "@/icons/Star";
 function MarketHeader() {
   const activeOpportunity = useActiveOpportunity();
   const { addFavorite, removeFavorite } = useOpportunitiesStore();
-
-  console.log({ activeOpportunity });
 
   const onClickFavorite = () => {
     if (!activeOpportunity) {

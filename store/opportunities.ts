@@ -1,6 +1,10 @@
 import { OpportunityData } from "@/app/api/dataModels";
 import { OpportunityId } from "@/types";
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { generateStorageKey } from "./utils";
+
+const VERSION = '1'
 
 interface OpportunitiesStore {
   opportunities: OpportunityData[];
@@ -8,6 +12,9 @@ interface OpportunitiesStore {
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
 
+  /**
+   * the functions below should not be used directly, use the hooks instead (useTabs)
+   */
   activeTab: OpportunityId;
   tabs: OpportunityId[];
   addTab: (tab: OpportunityId) => void;
@@ -21,28 +28,42 @@ interface OpportunitiesStore {
   setFavorites: (favorites: OpportunityId[]) => void;
 }
 
-const useOpportunitiesStore = create<OpportunitiesStore>((set) => ({
-  opportunities: [],
-  setOpportunities: (opportunities: OpportunityData[]) =>
-    set({ opportunities }),
-  isLoading: false,
-  setIsLoading: (isLoading: boolean) => set({ isLoading }),
+const useOpportunitiesStore = create<OpportunitiesStore>()(
+  persist(
+    (set) => ({
+      opportunities: [],
+      setOpportunities: (opportunities: OpportunityData[]) =>
+        set({ opportunities }),
+      isLoading: false,
+      setIsLoading: (isLoading: boolean) => set({ isLoading }),
 
-  activeTab: "",
-  tabs: [],
-  addTab: (tab: OpportunityId) =>
-    set((state) => ({ tabs: [...state.tabs, tab] })),
-  removeTab: (tab: OpportunityId) =>
-    set((state) => ({ tabs: state.tabs.filter((t) => t !== tab) })),
-  setActiveTab: (tab: OpportunityId) => set({ activeTab: tab }),
+      activeTab: "",
+      tabs: [],
+      addTab: (tab: OpportunityId) =>
+        set((state) => ({ tabs: [...state.tabs, tab] })),
+      removeTab: (tab: OpportunityId) =>
+        set((state) => ({ tabs: state.tabs.filter((t) => t !== tab) })),
+      setActiveTab: (tab: OpportunityId) => set({ activeTab: tab }),
 
-  // favorites
-  favorites: ["1", "2", "3", "4", "5", "6", "7"],
-  addFavorite: (tab: OpportunityId) =>
-    set((state) => ({ favorites: [...state.favorites, tab] })),
-  removeFavorite: (tab: OpportunityId) =>
-    set((state) => ({ favorites: state.favorites.filter((t) => t !== tab) })),
-  setFavorites: (favorites: OpportunityId[]) => set({ favorites }),
-}));
+      // favorites
+      favorites: ["1", "2", "3", "4", "5", "6", "7"],
+      addFavorite: (tab: OpportunityId) =>
+        set((state) => ({ favorites: [...state.favorites, tab] })),
+      removeFavorite: (tab: OpportunityId) =>
+        set((state) => ({
+          favorites: state.favorites.filter((t) => t !== tab),
+        })),
+      setFavorites: (favorites: OpportunityId[]) => set({ favorites }),
+    }),
+    {
+      name: generateStorageKey('opportunities', VERSION),
+      partialize: (state) => ({
+        activeTab: state.activeTab,
+        tabs: state.tabs,
+        favorites: state.favorites,
+      }),
+    }
+  )
+);
 
 export default useOpportunitiesStore;
