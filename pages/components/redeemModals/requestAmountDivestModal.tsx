@@ -1,7 +1,7 @@
 //lido
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState, useEffect } from "react";
-import { OpportunityData, RedeemStatus } from "../../api/dataModels";
+import { OpportunityData, RedeemStatus } from "@/app/api/dataModels";
 import { getAccessToken } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
 
@@ -172,7 +172,7 @@ export default function RequestAmountDivestModal({
                               type="number"
                               name={`amount-${asset.symbol}`}
                               id={`amount-${asset.symbol}`}
-                              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm"
+                              className="py-2 px-3 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
                               placeholder={`Enter ${asset.symbol} amount`}
                               step="any"
                               min="0"

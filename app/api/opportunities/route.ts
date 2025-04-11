@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   try {
     await client.verifyAuthToken(authToken);
     const opportunities = await getOpportunities();
-    return NextResponse.json({ opportunities }, { status: 200 });
+    return NextResponse.json({ data: opportunities }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

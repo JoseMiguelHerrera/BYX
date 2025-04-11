@@ -1,9 +1,3 @@
-export enum Market {
-  UNISWAP = "Uniswap",
-  CURVE = "Curve",
-  THORCHAIN = "Thorchain",
-}
-
 export enum OrderType {
   Market = 'Market',
   Limit = 'Limit',
@@ -24,3 +18,5 @@ export enum PositionsTab {
   OrderHistory = 'Order History',
   FundingHistory = 'Funding History',
 }
+
+export type OpportunityId = string

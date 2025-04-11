@@ -7,6 +7,7 @@ import OrderTypes from "./OrderTypes";
 import OrderActions from "./OrderActions";
 import Input from "@/components/Input";
 import TabItem from "@/components/TabItem";
+
 function OrderPanel() {
   const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType>(
     OrderType.Market

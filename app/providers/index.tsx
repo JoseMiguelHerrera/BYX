@@ -1,14 +1,18 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { ToastContainer } from "react-toastify";
-import {mainnet,base,arbitrum,berachain} from 'viem/chains';
+import { mainnet, base, arbitrum, berachain } from "viem/chains";
+import OpportunitiesProvider from "./Opportunities";
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID!;
 
 if (!appId) {
   throw new Error("NEXT_PUBLIC_PRIVY_APP_ID is not set");
 }
+
+const queryClient = new QueryClient();
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -29,8 +33,11 @@ function Providers({ children }: { children: React.ReactNode }) {
         supportedChains: [mainnet, base, arbitrum, berachain],
       }}
     >
-      {children}
-      <ToastContainer />
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <ToastContainer />
+        <OpportunitiesProvider />
+      </QueryClientProvider>
     </PrivyProvider>
   );
 }
