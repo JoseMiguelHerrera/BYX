@@ -1,7 +1,7 @@
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { ChainMetadata, Asset, OpportunityData, OpportunityContract } from "@/app/api/dataModels";
-import { eq} from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import {Transaction} from "@/app/api/dataModels"
 import dotenv from "dotenv";
@@ -116,6 +116,16 @@ export async function getChainMetadata(): Promise<ChainMetadata[]> {
   }
 
   return Array.from(chainsMap.values());
+}
+
+export async function getChainById(chainId: string): Promise<typeof schema.chainMetadata.$inferSelect | undefined> {
+  const db = await getDB();
+  const chain = await db
+    .select()
+    .from(schema.chainMetadata)
+    .where(eq(schema.chainMetadata.id, chainId))
+    .limit(1); 
+  return chain[0]
 }
 
 export async function getOpportunityById(opportunityId: string): Promise<OpportunityData | null> {
@@ -315,9 +325,6 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
   }));
 }
 
-
-//TODO: to fix this, I need to better align the models and the database schema -> more specifically, the Assets need to have an ID in the model.
-//Work in progress
 export async function writeTransactions(transactions: Transaction[]) {
   const db = await getDB();
 
@@ -371,4 +378,31 @@ export async function writeTransactions(transactions: Transaction[]) {
     }
   });
 }
+
+export async function getAssetBySymbolAndChain(symbol: string, chainId: string): Promise<typeof schema.assets.$inferSelect | undefined> {
+  const db = await getDB();
+  const result = await db
+    .select({
+      id: schema.assets.id,
+      name: schema.assets.name,
+      symbol: schema.assets.symbol,
+      isFundingAsset: schema.assets.isFundingAsset,
+      address: schema.assets.address,
+      priceUSD: schema.assets.priceUSD,
+      decimals: schema.assets.decimals,
+      tokenType: schema.assets.tokenType,
+    })
+    .from(schema.assets)
+    .innerJoin(
+      schema.chainAssets,
+      eq(schema.assets.id, schema.chainAssets.assetId)
+    )
+    .where(
+      sql`${schema.assets.symbol} = ${symbol} AND ${schema.chainAssets.chainId} = ${chainId}`
+    )
+    .limit(1);
+  return result[0]
+}
+
+
 

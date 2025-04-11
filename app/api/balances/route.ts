@@ -59,16 +59,20 @@ async function getERC20Balance(
   return formatUnits(balance, decimals);
 }
 
-async function getBalancesFromDebank(address: Address) {
+export interface DebankTokenInfo {
+  chain: string;
+  balance: string;
+  symbol: string;
+  usdValue: number;
+  price: number;
+}
+
+//This should go somewhere else like in a debank api wrapper.
+export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
   //When we have the database, this should be cached.
   const chainsMetadata = await getChainMetadata();
 
-  let balances: {
-    chain: string;
-    balance: string;
-    symbol: string;
-    usdValue: number;
-  }[] = [];
+  let balances: DebankTokenInfo[] = [] as DebankTokenInfo[];
   const debankTokenList = await getAllUserTokenList(address);
   for (const chainMetadata of chainsMetadata) {
     for (const asset of chainMetadata.assets) {
@@ -89,6 +93,7 @@ async function getBalancesFromDebank(address: Address) {
           balance: debankTokenInfo.amount.toString(),
           symbol: asset.symbol,
           usdValue: usdValue,
+          price: debankTokenInfo.price,
         });
       } catch (e: any) {
         console.log(e.message);
@@ -97,13 +102,13 @@ async function getBalancesFromDebank(address: Address) {
           balance: "0",
           symbol: asset.symbol,
           usdValue: 0,
+          price: 0,
         });
       }
     }
   }
   return balances;
 }
-
 export async function POST(req: NextRequest) {
   // const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
   try {

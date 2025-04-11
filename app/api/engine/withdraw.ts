@@ -1,7 +1,7 @@
 import { Chain, encodeFunctionData, http, parseUnits, PublicClient } from "viem";
 import { Address, createPublicClient } from "viem";
 import { Asset } from "../dataModels";
-import { getViemChain } from "./chainPicker";
+import { getViemChainByInternalId } from "./chainPicker";
 import { erc20ABI } from "../abis";
 import ServerSideTransactions from "./serverSideTransactions";
 
@@ -13,7 +13,7 @@ export async function withdraw(
   recipientAddress: Address,
 ) {
 
-    const viemChain = getViemChain(chainId);
+    const viemChain = getViemChainByInternalId(chainId);
     const client = createPublicClient({
       chain: viemChain,
       transport: http(), // Use default RPC

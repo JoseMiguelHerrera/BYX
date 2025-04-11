@@ -19,9 +19,10 @@ import {
   createAaveV3SupplyTransaction,
   createAaveV3WithdrawTransaction,
 } from "./aave/aave";
-import { createErc20ApprovalTransaction,createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
+import { createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
 import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
 import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
+import { performCrossChainSwap } from "./crossChainSwaps/consumeCrossChainTokens";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -43,6 +44,7 @@ export async function createTransaction(
   if (type === TransactionType.Invest) {
     switch (opportunity.id) {
       case "1":
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
         let tx = await createLidoSubmitTransaction(
           opportunity,
           userAddress,
@@ -67,6 +69,7 @@ export async function createTransaction(
         break;
       case "3":
       case "4":
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
         let aaveSupplyApprovalTx = await createAaveV3SupplyApprovalTransaction(
           opportunity,
           userAddress,
@@ -96,34 +99,34 @@ export async function createTransaction(
         );
         txs.push(...approvalTxs5, mintTx5);
         break;
-        case "6":
-          let approvalTxs6 = await createDualTokenApprovalTransactions(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let mintTx6 = await createKodiakIslandMintTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            approvalTxs6.length,
-            extraData,
-          );
-          txs.push(...approvalTxs6, mintTx6);
-          break;
-        case "7":
-          let approvalTx7 = await createInfraredStakeApprovalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let stakeTx7 = await createInfraredStakeTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            1
-          );
-          txs.push(approvalTx7,stakeTx7);
+      case "6":
+        let approvalTxs6 = await createDualTokenApprovalTransactions(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let mintTx6 = await createKodiakIslandMintTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          approvalTxs6.length,
+          extraData,
+        );
+        txs.push(...approvalTxs6, mintTx6);
+        break;
+      case "7":
+        let approvalTx7 = await createInfraredStakeApprovalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let stakeTx7 = await createInfraredStakeTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          1
+        );
+        txs.push(approvalTx7, stakeTx7);
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -153,38 +156,38 @@ export async function createTransaction(
         );
         txs.push(aaveWithdrawTx);
         break;
-        case "5":
-          let totalRedeemTxs5 = await createRedeemTotalUniswapLPTransactions(
-            opportunity,
-            userAddress,
-            0,
-            extraData,
-          );
-          txs.push(...totalRedeemTxs5);
-          break;
-        case "6":
-          let approvalTx6 = await createKodiakIslandApprovalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let redeemTx6 = await createKodiakIslandRedeemTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            1,
-            extraData,
-          );
-          txs.push(approvalTx6, redeemTx6);
-          break;
-        case "7":
-          const infraredWithdrawalTx = await createInfraredWithdrawalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts
-          );
-          txs.push(infraredWithdrawalTx);
-          break;
+      case "5":
+        let totalRedeemTxs5 = await createRedeemTotalUniswapLPTransactions(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(...totalRedeemTxs5);
+        break;
+      case "6":
+        let approvalTx6 = await createKodiakIslandApprovalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let redeemTx6 = await createKodiakIslandRedeemTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          1,
+          extraData,
+        );
+        txs.push(approvalTx6, redeemTx6);
+        break;
+      case "7":
+        const infraredWithdrawalTx = await createInfraredWithdrawalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts
+        );
+        txs.push(infraredWithdrawalTx);
+        break;
     }
   } else if (type === TransactionType.RequestDivest) {
     switch (opportunity.id) {
@@ -213,23 +216,23 @@ export async function createTransaction(
         );
         txs.push(collectRewardsTx);
         break;
-        case "5":
-          let collectRewardsTx5 = await createCollectRewardsTransaction(
-            opportunity,
-            userAddress,
-            0,
-            extraData,
-          );
-          txs.push(collectRewardsTx5);
-          break;
-        case "7":
-          const infraredCollectRewardsTx = await createInfraredCollectRewardsTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts
-          );
-          txs.push(infraredCollectRewardsTx);
-          break;
+      case "5":
+        let collectRewardsTx5 = await createCollectRewardsTransaction(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(collectRewardsTx5);
+        break;
+      case "7":
+        const infraredCollectRewardsTx = await createInfraredCollectRewardsTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts
+        );
+        txs.push(infraredCollectRewardsTx);
+        break;
     }
   } else {
     throw new Error("Invalid transaction type");
@@ -248,6 +251,8 @@ export async function createTransaction(
     //TODO: return input and output assets here.
   }
 }
+
+
 
 export async function getWithdrawalStatus(
   opportunity: OpportunityData,

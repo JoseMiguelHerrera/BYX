@@ -1,5 +1,5 @@
 import { aaveV3Pool } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
   Address,
   createPublicClient,
@@ -18,7 +18,7 @@ export async function createAaveV3SupplyTransaction(
   nonceOffSet: number = 0,
 ) {
   await validateAaveV3Supply(opportunity, tokenInputs);
-  const viemChain = getViemChain(opportunity.chain);
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC
@@ -63,7 +63,7 @@ export async function createAaveV3WithdrawTransaction(
   nonceOffSet: number = 0,
 ) {
   await validateAaveV3Withdraw(opportunity, tokenInputs);
-  const viemChain = getViemChain(opportunity.chain);
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC

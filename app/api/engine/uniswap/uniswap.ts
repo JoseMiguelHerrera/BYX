@@ -1,5 +1,5 @@
 import { uniswapV3NonfungiblePositionManager, UniswapV3Pool } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
     Address,
     createPublicClient,
@@ -43,7 +43,7 @@ export async function createUniswapMintLPTransaction(
     console.log("createUniswapMintLPTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateMintLP(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -164,7 +164,7 @@ interface PriceInfo {
 }
 export async function getUniswapLPInfo(opportunity: OpportunityData, userAddress: string) {
 
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(),
@@ -274,7 +274,7 @@ async function _getPositionInfo(client: PublicClient, contractAddress: Address, 
 }
 
 export async function getUniswapLPPositions(opportunity: OpportunityData, userAddress: string) {
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -412,7 +412,7 @@ export async function createCollectRewardsTransaction(
     console.log("createCollectRewardsTransaction")
     await validateUniswapCollectRewards(extraData);
     const nftId = extraData[0] as number;
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -463,7 +463,7 @@ export async function createWithdrawTransaction(
     nonceOffSet: number = 0,
 ) {
     //TODO: add validation
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC

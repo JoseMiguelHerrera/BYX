@@ -1,5 +1,5 @@
 import { erc20ABI } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
   Address,
   createPublicClient,
@@ -17,7 +17,7 @@ export async function createErc20ApprovalTransaction(
   spenderAddress: Address,
   nonceOffSet: number = 0,
 ) {
-  const viemChain = getViemChain(opportunityChain);
+  const viemChain = getViemChainByInternalId(opportunityChain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC

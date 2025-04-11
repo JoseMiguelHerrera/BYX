@@ -2,11 +2,11 @@ import { PrivyClient } from "@privy-io/server-auth";
 import dotenv from "dotenv";
 import { Address, http } from "viem";
 import { createPublicClient } from "viem";
-import { getViemChain } from "./chainPicker";
+import { getViemChainByInternalId } from "./chainPicker";
 dotenv.config();
 
 export default class ServerSideTransactions {
-  private client: PrivyClient;
+  public client: PrivyClient;//for now for testing make this public
   constructor() {
     if (
       !process.env.NEXT_PUBLIC_PRIVY_APP_ID ||
@@ -37,7 +37,7 @@ export default class ServerSideTransactions {
       return;
     }
     console.log("userAddress", userAddress);
-    const viemChain = getViemChain(chain);
+    const viemChain = getViemChainByInternalId(chain);
     const client = createPublicClient({
       chain: viemChain,
       transport: http(),

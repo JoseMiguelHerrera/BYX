@@ -1,5 +1,5 @@
 import { KodiakIslandRouterABI, KodiakIslandABI } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
     Address,
     createPublicClient,
@@ -38,7 +38,7 @@ export async function createKodiakIslandMintTransaction(
     console.log("createKodiakIslandMintTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateKodiakIslandMint(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -117,7 +117,7 @@ export async function createKodiakIslandRedeemTransaction(
     console.log("createKodiakIslandRedeemTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateKodiakIslandRedeem(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
