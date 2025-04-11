@@ -161,7 +161,7 @@ export class PrivyRelayLinkAdaptor {
         currency: fromCurrency,
         toCurrency: toCurrency,
         recipient: userAddress,
-        tradeType: "EXACT_INPUT",//This will be important to keep an eye on for when we have to link several swaps to keep track of the total amounts.
+        tradeType: "EXACT_OUTPUT",//This will be important to keep an eye on for when we have to link several swaps to keep track of the total amounts.
         amount: amountWei,
         wallet: adaptedPrivyWallet,
       })
@@ -169,12 +169,10 @@ export class PrivyRelayLinkAdaptor {
        const result = await getClient().actions.execute({
         quote,
         wallet: adaptedPrivyWallet,
-        /*
         onProgress: ({ steps, fees, breakdown, currentStep, currentStepItem, txHashes, details }) => {
           //for now were are not going give details to the user, it either works or not
-          console.log("rekaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
+          console.log("relaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
         },
-        */
       })
       return result
     }

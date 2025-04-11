@@ -21,7 +21,7 @@ export function getUSDGasBuffer(chainId: string): number {
   }
 
 
-export async function getTokenConsumption(opportunity: OpportunityData, userAddress: string, tokenInputs: TokenInput[]) {
+export async function getTokenConsumptionInfo(opportunity: OpportunityData, userAddress: string, tokenInputs: TokenInput[]) {
     const debankBalances = await getBalancesFromDebank(userAddress as Address);
 
     const canConsumeNativeAssets = await canPerformNativeAssetConsumption(debankBalances,opportunity, userAddress, tokenInputs);
