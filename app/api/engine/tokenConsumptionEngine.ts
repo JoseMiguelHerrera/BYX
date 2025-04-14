@@ -5,41 +5,46 @@ import { getAssetBySymbolAndChain} from "@/database/queries";
 import { getViemChainByInternalId } from "./chainPicker";
 
 
-
-export function getUSDGasBuffer(chainId: string): number {
+//This is super hacky: native asset gas usage in dollars.
+export function getUSDGasBuffer(chainId: string, transactionIndex: number): number {
     switch (chainId) {
       case "arbitrum":
-        return 1;
+        return 1*(1+transactionIndex);
       case "ethereum":
-        return 5;
+        return 4*(1+transactionIndex);
       case "berachain":
-        return 1.50;
+        return 1*(1+transactionIndex);
       case "base":
-        return 1;
+        return 1*(1+transactionIndex);;
     }
     throw new Error("Invalid chain");
   }
 
-
-export async function getTokenConsumptionInfo(opportunity: OpportunityData, userAddress: string, tokenInputs: TokenInput[]) {
-    const debankBalances = await getBalancesFromDebank(userAddress as Address);
-
-    const canConsumeNativeAssets = await canPerformNativeAssetConsumption(debankBalances,opportunity, userAddress, tokenInputs);
-
-    if (!canConsumeNativeAssets) {
-        const gasBufferedDebankBalances = await getGasBufferedDebankBalances(debankBalances);
-        const tokenConsumptions = await getMultiTokenConsumption(gasBufferedDebankBalances,opportunity, userAddress, tokenInputs);
-        console.log("tokenConsumptions", tokenConsumptions);
-       return tokenConsumptions;
-    }else{
-        return [];//No need to do consumption.
+//Can expand this of course to do more complex prioritization.
+export async function prioritizeDebankBalances(debankBalances: DebankTokenInfo[]): Promise<DebankTokenInfo[]> {
+    const prioritizedBalances: DebankTokenInfo[] = [];
+    const nativeAssets: DebankTokenInfo[] = [];
+    // Separate native and non-native assets
+    for (const balance of debankBalances) {
+        if (balance.isNativeAsset) {
+            nativeAssets.push(balance);
+        } else {
+            prioritizedBalances.push(balance);
+        }
     }
+    // Combine arrays with native assets at the end
+    return [...prioritizedBalances, ...nativeAssets];
 }
 
-async function canPerformNativeAssetConsumption(debankBalances: DebankTokenInfo[],opportunity: OpportunityData, userAddress: string, tokenInputs: TokenInput[]): Promise<boolean> {
-    // This returns an array with the structure:
-    // { chain: string; balance: string; symbol: string; usdValue: number; }[]
-    
+//This should only be called if canPerformNativeAssetConsumption returns false
+export async function getTokenConsumptionInfo(debankBalances: DebankTokenInfo[],opportunity: OpportunityData, tokenInputs: TokenInput[], tokenInputIndex: number) {
+    const gasBufferedDebankBalances = await getGasBufferedDebankBalances(debankBalances,tokenInputIndex);
+    const tokenConsumptions = await getMultiTokenConsumption(gasBufferedDebankBalances,debankBalances,opportunity, tokenInputs,tokenInputIndex);
+    console.log("tokenConsumptions", tokenConsumptions);
+    return tokenConsumptions;
+}
+
+export async function canPerformNativeAssetConsumption(debankBalances: DebankTokenInfo[],opportunity: OpportunityData, tokenInputs: TokenInput[]): Promise<boolean> {    
     // Get the chain from opportunity
     const chainName = opportunity.chain;//internal chain id. Need to convert to debank chain id.
  
@@ -76,7 +81,7 @@ export interface TokenConsumption{
     isNativeAsset: boolean;
 }
 
-async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[]): Promise<DebankTokenInfo[]> {
+async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[],tokenInputIndex: number): Promise<DebankTokenInfo[]> {
       // Replace the map with a for...of loop to handle async operations
       const gasBufferedDebankBalances: DebankTokenInfo[] = [];
       for (const balance of debankBalances) {
@@ -85,7 +90,7 @@ async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[]): 
             gasBufferedDebankBalances.push(balance);
             continue;
           }
-          const gasUSDBuffer = getUSDGasBuffer(balance.chain.toLowerCase());
+          const gasUSDBuffer = getUSDGasBuffer(balance.chain.toLowerCase(),tokenInputIndex);
           // Convert USD buffer to token amount based on price
           const gasTokenBuffer = balance.price > 0 ? gasUSDBuffer / balance.price : 0;
           
@@ -110,13 +115,13 @@ async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[]): 
 
 
 //TODO: decrate debankBalances so that this can be run more than once, for the cases where there is more than one input token.
-//TODO: add some cushion of native assets in each chain to account for gas.
-async function getMultiTokenConsumption(debankBalances: DebankTokenInfo[],opportunity: OpportunityData, userAddress: string, tokenInputs: TokenInput[]): Promise<TokenConsumption[]> {
-    const inputToken = tokenInputs[0]!;
-    console.log("debankBalances", debankBalances);
+//TODO: This needs to be reworked.... we SHOULD be able to consume one of the input tokens to swap for the other one, but only to a certain extent... cannot go below a certain amount. 
+async function getMultiTokenConsumption(gasBufferedDebankBalances: DebankTokenInfo[], rawDebankBalances: DebankTokenInfo[], opportunity: OpportunityData, inputTokens: TokenInput[], inputTokenIndex: number): Promise<TokenConsumption[]> {
+    const inputToken = inputTokens[inputTokenIndex]!;
+    console.log("gasBufferedDebankBalances", gasBufferedDebankBalances);
     console.log(opportunity.chain)
     console.log(inputToken.asset.symbol)
-    const inputTokenBalanceInfo = debankBalances.find(
+    const inputTokenBalanceInfo = gasBufferedDebankBalances.find(
         (balance) => 
             balance.symbol.toLowerCase() === inputToken.asset.symbol.toLowerCase() && 
             balance.chain.toLowerCase() === opportunity.chain.toLowerCase()
@@ -133,64 +138,67 @@ async function getMultiTokenConsumption(debankBalances: DebankTokenInfo[],opport
     let remainingUsdToFund = goalUSDValue;
     const tokenConsumptions: TokenConsumption[] = [];
 
-
-    for (const debankBalance of debankBalances) {
+    for (const gasBufferedDebankBalance of gasBufferedDebankBalances) {
         // Break if we've already reached our target
         if (remainingUsdToFund <= 0) {
-            break; // Exit the loop completely
+            break;
         }
         
         // Skip token if it has no value
-        if (debankBalance.usdValue <= 0) {
+        if (gasBufferedDebankBalance.usdValue <= 0) {
             continue; // Skip to next iteration
         }
-        const assetInfo = await getAssetBySymbolAndChain(debankBalance.symbol, debankBalance.chain.toLowerCase());
-        const chainInfo = getViemChainByInternalId(debankBalance.chain.toLowerCase());
+        const assetInfo = await getAssetBySymbolAndChain(gasBufferedDebankBalance.symbol, gasBufferedDebankBalance.chain.toLowerCase());
+        const chainInfo = getViemChainByInternalId(gasBufferedDebankBalance.chain.toLowerCase());
         if(!assetInfo){
             //This should never happen.
-            console.log(debankBalance);
+            console.log(gasBufferedDebankBalance);
             throw new Error("Asset info not found in db");
         }
         // Determine whether to use all or part of this token
-        if (debankBalance.usdValue <= remainingUsdToFund) {
+        let debankBalanceIndex =0;
+        if (gasBufferedDebankBalance.usdValue <= remainingUsdToFund) {
+
+            const isInputToken= inputTokens.some(inputToken => inputToken.asset.symbol.toLowerCase() === gasBufferedDebankBalance.symbol.toLowerCase() && opportunity.chain.toLowerCase() === gasBufferedDebankBalance.chain.toLowerCase());
+
             tokenConsumptions.push({
-                tokenSymbol: debankBalance.symbol,
+                tokenSymbol: gasBufferedDebankBalance.symbol,
                 tokenAddress: assetInfo.address && assetInfo.tokenType!=="NATIVE" ? assetInfo.address : "0x0000000000000000000000000000000000000000",
-                tokenAmount: debankBalance.balance,
-                tokenDebankPrice: debankBalance.price,
-                tokenDebankUSDValue: debankBalance.usdValue,
+                tokenAmount: gasBufferedDebankBalance.balance,
+                tokenDebankPrice: gasBufferedDebankBalance.price,
+                tokenDebankUSDValue: gasBufferedDebankBalance.usdValue,
                 tokenDecimals: assetInfo.decimals,
                 tokenChainNumber: chainInfo.id,
-                isInputToken: debankBalance.symbol.toLowerCase() === inputToken.asset.symbol.toLowerCase() && debankBalance.chain.toLowerCase() === opportunity.chain.toLowerCase(),
+                isInputToken: isInputToken,
                 isNativeAsset: assetInfo.tokenType==="NATIVE"
             });
-            remainingUsdToFund -= debankBalance.usdValue;
-            //Used up all of this token.
-            debankBalance.usdValue=0;
-            debankBalance.balance="0";        
-            //console.log(`Consuming ${debankBalance.usdValue} of ${debankBalance.symbol} on chain ${debankBalance.chain}`)
+            remainingUsdToFund -= gasBufferedDebankBalance.usdValue;
+            rawDebankBalances[debankBalanceIndex]!.usdValue-=gasBufferedDebankBalance.usdValue;
+            rawDebankBalances[debankBalanceIndex]!.balance=(parseFloat(rawDebankBalances[debankBalanceIndex]!.balance) -parseFloat(gasBufferedDebankBalance.balance)).toString();        
         } else {
             //Debank usd value of this asset is greater than the remaining usd to fund.
+            const isInputToken= inputTokens.some(inputToken => inputToken.asset.symbol.toLowerCase() === gasBufferedDebankBalance.symbol.toLowerCase() && opportunity.chain.toLowerCase() === gasBufferedDebankBalance.chain.toLowerCase());
 
             // Only use a portion of this token
-            const fraction = remainingUsdToFund / debankBalance.usdValue;
-            const tokenAmount = parseFloat(debankBalance.balance) * fraction;
-            const usdFraction = debankBalance.usdValue * fraction;
+            const fraction = remainingUsdToFund / gasBufferedDebankBalance.usdValue;
+            const tokenAmount = parseFloat(gasBufferedDebankBalance.balance) * fraction;
+            const usdFraction = gasBufferedDebankBalance.usdValue * fraction;
             tokenConsumptions.push({
-                tokenSymbol: debankBalance.symbol,
+                tokenSymbol: gasBufferedDebankBalance.symbol,
                 tokenAddress: assetInfo.address ? assetInfo.address : "0x0000000000000000000000000000000000000000",
                 tokenAmount: tokenAmount.toString(),
-                tokenDebankPrice: debankBalance.price,
+                tokenDebankPrice: gasBufferedDebankBalance.price,
                 tokenDebankUSDValue: usdFraction,
                 tokenDecimals: assetInfo.decimals,
                 tokenChainNumber: chainInfo.id,
-                isInputToken: debankBalance.symbol.toLowerCase() === inputToken.asset.symbol.toLowerCase() && debankBalance.chain.toLowerCase() === opportunity.chain.toLowerCase(),
+                isInputToken: isInputToken,
                 isNativeAsset: assetInfo.address===null
             });
             remainingUsdToFund -= usdFraction;
-            debankBalance.usdValue-=usdFraction;
-            debankBalance.balance=(parseFloat(debankBalance.balance) -tokenAmount).toString();
+            rawDebankBalances[debankBalanceIndex]!.usdValue-=usdFraction;
+            rawDebankBalances[debankBalanceIndex]!.balance=(parseFloat(rawDebankBalances[debankBalanceIndex]!.balance) -tokenAmount).toString();
         }
+        debankBalanceIndex++;
     }
     
     // Check if we couldn't gather enough funds

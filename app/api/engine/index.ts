@@ -23,6 +23,7 @@ import { createDualTokenApprovalTransactions } from "./generic/approveErc20Token
 import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
 import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
 import { performCrossChainSwap } from "./crossChainSwaps/consumeCrossChainTokens";
+import { PrivyClient } from "@privy-io/server-auth";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -30,6 +31,7 @@ export async function createTransaction(
   inputAmounts: TokenInput[],
   type: TransactionType,
   extraData: any[] = [],
+  privyClient: PrivyClient
 ) {
   console.log("createTransaction");
   console.log(`opportunity: ${JSON.stringify(opportunity)}`);
@@ -39,7 +41,7 @@ export async function createTransaction(
   console.log(`extraData: ${JSON.stringify(extraData)}`);
 
   //make this live longer, no need to remake it every time.
-  const serverSideTransactions = new ServerSideTransactions();
+  const serverSideTransactions = new ServerSideTransactions(privyClient);
   let txs: any[] = [];
   if (type === TransactionType.Invest) {
     switch (opportunity.id) {
@@ -58,6 +60,7 @@ export async function createTransaction(
           userAddress,
           inputAmounts,
         );
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
         let mintTx = await createUniswapMintLPTransaction(
           opportunity,
           userAddress,

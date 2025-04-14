@@ -65,6 +65,7 @@ export interface DebankTokenInfo {
   symbol: string;
   usdValue: number;
   price: number;
+  isNativeAsset: boolean;
 }
 
 //This should go somewhere else like in a debank api wrapper.
@@ -94,6 +95,7 @@ export async function getBalancesFromDebank(address: Address): Promise<DebankTok
           symbol: asset.symbol,
           usdValue: usdValue,
           price: debankTokenInfo.price,
+          isNativeAsset: asset.type==="NATIVE"
         });
       } catch (e: any) {
         let tokenIdentifier;
@@ -105,13 +107,13 @@ export async function getBalancesFromDebank(address: Address): Promise<DebankTok
         }
         try{
         const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
-        console.log("Token info", tokenInfo);
         balances.push({
           chain: chainMetadata.name,
           balance: "0",
           symbol: asset.symbol,
           usdValue: 0,
           price: tokenInfo.price,
+          isNativeAsset: asset.type==="NATIVE"
         });
         }catch(e:any){
           balances.push({
@@ -120,6 +122,7 @@ export async function getBalancesFromDebank(address: Address): Promise<DebankTok
             symbol: asset.symbol,
             usdValue: 0,
             price: 0,
+            isNativeAsset: asset.type==="NATIVE"
           });
         }
       }

@@ -165,15 +165,17 @@ export class PrivyRelayLinkAdaptor {
         amount: amountWei,
         wallet: adaptedPrivyWallet,
       })
-      console.log("quote", quote) 
        const result = await getClient().actions.execute({
         quote,
         wallet: adaptedPrivyWallet,
+        /*
         onProgress: ({ steps, fees, breakdown, currentStep, currentStepItem, txHashes, details }) => {
           //for now were are not going give details to the user, it either works or not
-          console.log("relaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
+          //console.log("relaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
         },
+        */
       })
+      console.log(`relaylink execute result`,result)
       return result
     }
 

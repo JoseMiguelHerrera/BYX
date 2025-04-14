@@ -8,8 +8,8 @@ if (!DEBANK_API_KEY) {
 }
 
 
+
 export async function getAllUserTokenList(userAddress: string) {
-    console.log("Getting all user token list", userAddress);
     const response = await axios.get(
         `https://pro-openapi.debank.com/v1/user/all_token_list?id=${userAddress}&is_all=true`,
         {
@@ -48,6 +48,5 @@ export async function getTokenInfo(chainId: string, tokenAddress: string): Promi
             }
         }
     );
-    console.log(response.data)
     return response.data as TokenInfo;
 }

@@ -7,23 +7,8 @@ dotenv.config();
 
 export default class ServerSideTransactions {
   public client: PrivyClient;//for now for testing make this public
-  constructor() {
-    if (
-      !process.env.NEXT_PUBLIC_PRIVY_APP_ID ||
-      !process.env.PRIVY_APP_SECRET ||
-      !process.env.PRIVY_DELEGATION_KEY
-    ) {
-      throw new Error("Missing Privy environment variables");
-    }
-    this.client = new PrivyClient(
-      process.env.NEXT_PUBLIC_PRIVY_APP_ID,
-      process.env.PRIVY_APP_SECRET,
-      {
-        walletApi: {
-          authorizationPrivateKey: process.env.PRIVY_DELEGATION_KEY,
-        },
-      },
-    );
+  constructor(privyClient: PrivyClient) {
+    this.client = privyClient;
   }
 
   async simulateTransactions(
@@ -76,18 +61,27 @@ export default class ServerSideTransactions {
 
     for (const tx of transactions) {
       console.log("Attempting to send transaction", tx);
-      const { hash } = await this.client.walletApi.ethereum.sendTransaction({
-        address: userAddress,
-        chainType: "ethereum",
-        caip2: `eip155:${tx.transaction.chainId}`,
-        transaction: tx.transaction,
-      });
-      console.log("waiting for transaction", hash);
-      await tx.wait({
-        hash: hash as `0x${string}`,
-      });
-      console.log(`Sent transaction ${hash}`);
-      hashes.push(hash);
+      try {
+        const { hash } = await this.client.walletApi.ethereum.sendTransaction({
+          address: userAddress,
+          chainType: "ethereum",
+          caip2: `eip155:${tx.transaction.chainId}`,
+          transaction: tx.transaction,
+        });
+        if (hash) {
+          console.log("waiting for transaction", hash);
+          await tx.wait({
+            hash: hash as `0x${string}`,
+          });
+          console.log(`Sent transaction ${hash}`);
+          hashes.push(hash);
+        }else{
+          console.log(`Transaction ${tx} returned null hash. Hopefully it was successful `);
+        }
+      } catch (e: any) {
+        console.log(`Error sending transaction ${tx}`, e);
+        throw e;
+      }
     }
 
     return hashes;
