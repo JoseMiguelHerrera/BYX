@@ -44,10 +44,9 @@ export async function createTransaction(
   const serverSideTransactions = new ServerSideTransactions(privyClient);
   let txs: any[] = [];
   if (type === TransactionType.Invest) {
+    opportunity.supportsAutoSwap && await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
     switch (opportunity.id) {
       case "1":
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         let tx = await createLidoSubmitTransaction(
           opportunity,
           userAddress,
@@ -56,8 +55,6 @@ export async function createTransaction(
         txs.push(tx);
         break;
       case "2":
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
@@ -74,8 +71,6 @@ export async function createTransaction(
         break;
       case "3":
       case "4":
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         let aaveSupplyApprovalTx = await createAaveV3SupplyApprovalTransaction(
           opportunity,
           userAddress,
@@ -91,8 +86,6 @@ export async function createTransaction(
         txs.push(aaveSupplyApprovalTx, aaveSupplyTx);
         break;
       case "5":
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs5 = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
@@ -108,8 +101,6 @@ export async function createTransaction(
         txs.push(...approvalTxs5, mintTx5);
         break;
       case "6":
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs6 = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,

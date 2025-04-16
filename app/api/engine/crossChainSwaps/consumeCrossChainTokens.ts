@@ -37,7 +37,7 @@ export async function performCrossChainSwap(
 ) {
   let debankBalancesRaw = await getBalancesFromDebank(userAddress as Address);//Get the raw debank balances.
   console.log("debankBalancesRaw", debankBalancesRaw);
-  const prioritizedDebankBalances = prioritizeDebankBalances(debankBalancesRaw, opportunity);//Prioritize the debank balances->Native assets last, for gas.
+  const prioritizedDebankBalances = prioritizeDebankBalances(debankBalancesRaw, opportunity);//Prioritize the debank balances by the order I'd like to consume them.
   console.log("prioritizedDebankBalances", prioritizedDebankBalances);
   const inputTokenCapacity = await calculateInputTokenCapacity(prioritizedDebankBalances, opportunity, tokenInputs);//Calculate the input token capacity.
   console.log("inputTokenCapacity", inputTokenCapacity);
@@ -71,4 +71,6 @@ export async function performCrossChainSwap(
     }
     tokenInputIndex++;
   }
+  //We have to do this because privy is using another RPC node than us, so we have to wait for the transactions to be sync'd by both.
+  await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
 }

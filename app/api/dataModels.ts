@@ -76,6 +76,7 @@ export interface OpportunityData {
   protocol: string;
   hasCollectableRewards: boolean;
   contracts: OpportunityContract[];
+  supportsAutoSwap: boolean;
 }
 
 export interface Transaction {

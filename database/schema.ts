@@ -41,6 +41,7 @@ export const opportunities = schema.table(
     type: text("type", { enum: ["Lending", "LP", "Staking", "AutoLP", "Vault"] }).notNull(),
     protocolName: text("protocol_name").notNull(),
     hasCollectableRewards: boolean("has_collectable_rewards").notNull(),
+    supportsAutoSwap: boolean("supports_auto_swap").notNull(),
   }
 );
 

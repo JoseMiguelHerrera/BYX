@@ -144,6 +144,7 @@ export async function getOpportunityById(opportunityId: string): Promise<Opportu
       type: schema.opportunities.type,
       protocol: schema.opportunities.protocolName,
       hasCollectableRewards: schema.opportunities.hasCollectableRewards,
+      supportsAutoSwap: schema.opportunities.supportsAutoSwap,
     })
     .from(schema.opportunities)
     .where(eq(schema.opportunities.id, opportunityId))
@@ -219,6 +220,7 @@ export async function getOpportunityById(opportunityId: string): Promise<Opportu
       contractAddress: contract.address,
       type: contract.type,
     })),
+    supportsAutoSwap: opportunity[0].supportsAutoSwap,
   };
 }
 
@@ -238,6 +240,7 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
       type: schema.opportunities.type,
       protocol: schema.opportunities.protocolName,
       hasCollectableRewards: schema.opportunities.hasCollectableRewards,
+      supportsAutoSwap: schema.opportunities.supportsAutoSwap,
     })
     .from(schema.opportunities);
 
@@ -322,6 +325,7 @@ export async function getOpportunities(): Promise<OpportunityData[]> {
     protocol: opp.protocol,
     hasCollectableRewards: opp.hasCollectableRewards,
     contracts: contractsMap.get(opp.id) || [],
+    supportsAutoSwap: opp.supportsAutoSwap,
   }));
 }
 
