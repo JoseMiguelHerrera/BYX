@@ -66,13 +66,19 @@ export class PrivyRelayLinkAdaptor {
                 onReplaced,
                 onCancelled
               ) => {
+
+                try{
                 const viemChain = getViemChainByChainNumber(this.currentChainID);
                 const viemClient = createPublicClient({
                     chain: viemChain,
                     transport: http(), // Use default RPC
                 });
+                // Wait for more block confirmations
+                const desiredConfirmations = 1; // Adjust this number as needed (e.g., 2, 3, or more)
+                console.log(`Waiting for ${desiredConfirmations} confirmations for tx: ${txHash}`);
                 const receipt = await viemClient.waitForTransactionReceipt({
                     hash: txHash as Address,
+                    confirmations: desiredConfirmations,
                     onReplaced: (replacement) => {
                         if (replacement.reason === 'cancelled') {
                           onCancelled()
@@ -80,8 +86,14 @@ export class PrivyRelayLinkAdaptor {
                         }
                         onReplaced(replacement.transaction.hash)
                       }
-                })         
+                })
+                console.log(`Transaction ${txHash} confirmed with ${desiredConfirmations} blocks.`);
                 return receipt
+              }catch(e){
+                console.log(`handleConfirmTransactionStep error`,e)
+                throw e;
+              }
+
               },
               handleSignMessageStep: async (item: SignatureStepItem,step: Execute['steps'][0]) => {
                 //await this.client.walletApi.ethereum.signMessage
@@ -138,9 +150,6 @@ export class PrivyRelayLinkAdaptor {
 
               },
               
-
-
-
             supportsAtomicBatch: async () => false,
         }
 
@@ -165,18 +174,24 @@ export class PrivyRelayLinkAdaptor {
         amount: amountWei,
         wallet: adaptedPrivyWallet,
       })
+      try{
        const result = await getClient().actions.execute({
         quote,
         wallet: adaptedPrivyWallet,
         /*
         onProgress: ({ steps, fees, breakdown, currentStep, currentStepItem, txHashes, details }) => {
           //for now were are not going give details to the user, it either works or not
-          //console.log("relaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
+          console.log("relaylink onProgress", { steps, fees, breakdown, currentStep, currentStepItem, txHashes, details })
         },
         */
+
       })
       console.log(`relaylink execute result`,result)
       return result
+    }catch(e){
+      console.log(`relaylink execute error`,e)
+      throw e;
+    }
     }
 
 

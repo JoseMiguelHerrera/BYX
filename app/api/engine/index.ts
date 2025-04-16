@@ -47,6 +47,7 @@ export async function createTransaction(
     switch (opportunity.id) {
       case "1":
         await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         let tx = await createLidoSubmitTransaction(
           opportunity,
           userAddress,
@@ -55,12 +56,13 @@ export async function createTransaction(
         txs.push(tx);
         break;
       case "2":
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
           inputAmounts,
         );
-        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
         let mintTx = await createUniswapMintLPTransaction(
           opportunity,
           userAddress,
@@ -73,6 +75,7 @@ export async function createTransaction(
       case "3":
       case "4":
         await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         let aaveSupplyApprovalTx = await createAaveV3SupplyApprovalTransaction(
           opportunity,
           userAddress,
