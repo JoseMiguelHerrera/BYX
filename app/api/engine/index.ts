@@ -91,6 +91,8 @@ export async function createTransaction(
         txs.push(aaveSupplyApprovalTx, aaveSupplyTx);
         break;
       case "5":
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs5 = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,
@@ -106,6 +108,8 @@ export async function createTransaction(
         txs.push(...approvalTxs5, mintTx5);
         break;
       case "6":
+        await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
         let approvalTxs6 = await createDualTokenApprovalTransactions(
           opportunity,
           userAddress,

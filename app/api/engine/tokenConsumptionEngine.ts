@@ -19,20 +19,39 @@ export function getUSDGasBuffer(chainId: string, transactionIndex: number): numb
     throw new Error("Invalid chain");
 }
 
-//Can expand this of course to do more complex prioritization.
-export async function prioritizeDebankBalances(debankBalances: DebankTokenInfo[]): Promise<DebankTokenInfo[]> {
-    const prioritizedBalances: DebankTokenInfo[] = [];
+export function prioritizeDebankBalances(debankBalances: DebankTokenInfo[], opportunity: OpportunityData): DebankTokenInfo[] {
+    const nonNativeAssets: DebankTokenInfo[] = [];
     const nativeAssets: DebankTokenInfo[] = [];
     // Separate native and non-native assets
     for (const balance of debankBalances) {
         if (balance.isNativeAsset) {
             nativeAssets.push(balance);
         } else {
-            prioritizedBalances.push(balance);
+            nonNativeAssets.push(balance);
         }
     }
     // Combine arrays with native assets at the end
-    return [...prioritizedBalances, ...nativeAssets];
+    return [..._prioritizeDebankBalancesByUsdValue(_prioritizeDebankBalancesByChain(nonNativeAssets, opportunity)), ..._prioritizeDebankBalancesByUsdValue(_prioritizeDebankBalancesByChain(nativeAssets, opportunity))];
+}
+
+function _prioritizeDebankBalancesByUsdValue(debankBalances: DebankTokenInfo[]): DebankTokenInfo[] {
+    return debankBalances.sort((a, b) => b.usdValue - a.usdValue);
+}
+
+function _prioritizeDebankBalancesByChain(debankBalances: DebankTokenInfo[], opportunity: OpportunityData): DebankTokenInfo[] {
+    // Sort the array, prioritizing balances on the opportunity's chain
+    return debankBalances.sort((a, b) => {
+        const aIsTargetChain = a.chain === opportunity.chain;
+        const bIsTargetChain = b.chain === opportunity.chain;
+
+        if (aIsTargetChain && !bIsTargetChain) {
+            return -1; // a comes before b
+        } else if (!aIsTargetChain && bIsTargetChain) {
+            return 1; // b comes before a
+        } else {
+            return 0; // Maintain original relative order if both are target or both are not
+        }
+    });
 }
 
 

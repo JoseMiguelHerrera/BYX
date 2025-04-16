@@ -37,7 +37,7 @@ export async function performCrossChainSwap(
 ) {
   let debankBalancesRaw = await getBalancesFromDebank(userAddress as Address);//Get the raw debank balances.
   console.log("debankBalancesRaw", debankBalancesRaw);
-  const prioritizedDebankBalances = await prioritizeDebankBalances(debankBalancesRaw);//Prioritize the debank balances->Native assets last, for gas.
+  const prioritizedDebankBalances = prioritizeDebankBalances(debankBalancesRaw, opportunity);//Prioritize the debank balances->Native assets last, for gas.
   console.log("prioritizedDebankBalances", prioritizedDebankBalances);
   const inputTokenCapacity = await calculateInputTokenCapacity(prioritizedDebankBalances, opportunity, tokenInputs);//Calculate the input token capacity.
   console.log("inputTokenCapacity", inputTokenCapacity);
