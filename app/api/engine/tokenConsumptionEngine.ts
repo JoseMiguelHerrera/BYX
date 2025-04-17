@@ -5,16 +5,16 @@ import { getViemChainByInternalId } from "./chainPicker";
 
 
 //This is super hacky: native asset gas usage in dollars.
-export function getUSDGasBuffer(chainId: string, transactionIndex: number): number {
+export function getUSDGasBuffer(chainId: string, numberOfOperations: number): number {
     switch (chainId) {
         case "arbitrum":
-            return 1 * (1 + transactionIndex);
+            return 0.66 * numberOfOperations;
         case "ethereum":
-            return 4 * (1 + transactionIndex);
+            return 3.50 * numberOfOperations;
         case "berachain":
-            return 1 * (1 + transactionIndex);
+            return 1 * numberOfOperations;
         case "base":
-            return 1 * (1 + transactionIndex);;
+            return 0.66 * numberOfOperations;
     }
     throw new Error("Invalid chain");
 }
@@ -187,10 +187,7 @@ export async function getInputTokenBufferedDebankBalances(debankBalances: Debank
 }
 
 
-
-
-export async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[], numberOfSwaps: number): Promise<DebankTokenInfo[]> {
-    // Replace the map with a for...of loop to handle async operations
+export async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[], operationsPerChain: Map<number, number>): Promise<DebankTokenInfo[]> {    
     const gasBufferedDebankBalances: DebankTokenInfo[] = [];
     for (const balance of debankBalances) {
         const assetInfo = await getAssetBySymbolAndChain(balance.symbol, balance.chain.toLowerCase());
@@ -198,7 +195,8 @@ export async function getGasBufferedDebankBalances(debankBalances: DebankTokenIn
             gasBufferedDebankBalances.push(balance);
             continue;
         }
-        const gasUSDBuffer = getUSDGasBuffer(balance.chain.toLowerCase(), numberOfSwaps);
+        const chainNumber = getViemChainByInternalId(balance.chain.toLowerCase()).id;
+        const gasUSDBuffer = getUSDGasBuffer(balance.chain.toLowerCase(), operationsPerChain.get(chainNumber) || 0);
         // Convert USD buffer to token amount based on price
         const gasTokenBuffer = balance.price > 0 ? gasUSDBuffer / balance.price : 0;
 
@@ -221,6 +219,24 @@ export async function getGasBufferedDebankBalances(debankBalances: DebankTokenIn
     return gasBufferedDebankBalances;
 }
 
+export function gasTokenSafetyCheck(gasBufferedDebankBalances: DebankTokenInfo[], operationsPerChain: Map<number, number>) {
+    for (const balance of gasBufferedDebankBalances) {
+        if (!balance.isNativeAsset) {//Not a native asset.
+            continue;
+        }
+        const chainNumber = getViemChainByInternalId(balance.chain.toLowerCase()).id;
+        const numberOfOperations = operationsPerChain.get(chainNumber);
+        if(!numberOfOperations) {
+            continue;
+        }
+        console.log(`numberOfOperations: ${numberOfOperations} on chain ${balance.chain}`);
+        const gasUSDBuffer = getUSDGasBuffer(balance.chain.toLowerCase(), numberOfOperations);
+        if (balance.usdValue < gasUSDBuffer) {
+            const actualGasUSDValue = balance.price * parseFloat(balance.balance);
+            throw new Error(`Not enough of token ${balance.symbol} on chain ${balance.chain} to cover gas costs. Need ${(gasUSDBuffer - actualGasUSDValue).toFixed(2)} more USD$ of it`);
+        }
+    }
+}
 
 async function getInputTokenUSDGoal(gasBufferedDebankBalances: DebankTokenInfo[], inputTokens: TokenInput[], inputTokenIndex: number, opportunity: OpportunityData, inputTokenCapacity: InputTokenCapacity) {
     const inputTokenInfo = gasBufferedDebankBalances.find(
@@ -287,6 +303,7 @@ export async function getMultiTokenConsumption(bufferedDebankBalances: DebankTok
                 isNativeAsset: assetInfo.tokenType === "NATIVE"
             });
             remainingUsdToFund -= bufferedDebankBalance.usdValue;
+
             bufferedDebankBalances[debankBalanceIndex]!.usdValue -= bufferedDebankBalance.usdValue;
             // Using original toString()
             bufferedDebankBalances[debankBalanceIndex]!.balance = (parseFloat(bufferedDebankBalances[debankBalanceIndex]!.balance) - parseFloat(bufferedDebankBalance.balance)).toString();
