@@ -39,7 +39,8 @@ async function _getOperationsPerChain(
   let tokenInputIndex = 0;
   const dryRunCrossChainTokenConsumptions: Map<number, TokenConsumption[]> = new Map();
   for (const tokenInput of tokenInputs) {
-    if (inputTokenCapacity.inputTokenConsumption[tokenInputIndex]?.requiresCrossChainSwap) {
+    const inputTokenConsumption = inputTokenCapacity.inputTokenConsumption.find((consumption) => consumption.symbol.toLowerCase() === tokenInput.asset.symbol.toLowerCase());
+    if (inputTokenConsumption && inputTokenConsumption.requiresCrossChainSwap) {
       const crossChainTokenConsumptions = await getMultiTokenConsumption(inputTokenBufferedBalancesClone, opportunity, tokenInputs, tokenInputIndex, inputTokenCapacity);
       dryRunCrossChainTokenConsumptions.set(tokenInputIndex, crossChainTokenConsumptions);
     }
@@ -83,7 +84,10 @@ export async function performCrossChainSwap(
 
   let tokenInputIndex = 0;
   for (const tokenInput of tokenInputs) {
-    if (!inputTokenCapacity.inputTokenConsumption[tokenInputIndex]?.requiresCrossChainSwap) {
+    const inputTokenConsumption = inputTokenCapacity.inputTokenConsumption.find((consumption) => consumption.symbol.toLowerCase() === tokenInput.asset.symbol.toLowerCase());
+    if (inputTokenConsumption && !inputTokenConsumption.requiresCrossChainSwap) {
+      console.log("inputTokenCapacity", inputTokenCapacity)
+      console.log(tokenInputIndex)
       console.log(`Enough assets of input token ${tokenInput.asset.symbol} to not require cross chain swaps to get more.`)
     } else {
       const crossChainTokenConsumptions = await getMultiTokenConsumption(readyDebankBalances, opportunity, tokenInputs, tokenInputIndex, inputTokenCapacity);

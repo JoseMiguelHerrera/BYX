@@ -66,10 +66,10 @@ export async function createKodiakIslandMintTransaction(
         islandContract: poolContractAddress as Address,
         amount0Desired: token0Desired,
         amount1Desired: token1Desired,
-        amount0Min:
-            (token0Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
-        amount1Min:
-            (token1Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        amount0Min: 0n, //calculate via simulation
+            //(token0Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        amount1Min: 0n, //calculate via simulation
+            //(token1Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
         minShares: BigInt(0),//TODO: calculate via simulation?
         recipient: userAddress as Address,
     };

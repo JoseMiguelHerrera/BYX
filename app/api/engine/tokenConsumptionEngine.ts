@@ -1,7 +1,8 @@
 import { OpportunityData, TokenInput } from "../dataModels";
 import { DebankTokenInfo } from "../balances/route";
-import { getAssetBySymbolAndChain } from "@/database/queries";
+import { getAssetBySymbolAndChain, getChainById } from "@/database/queries";
 import { getViemChainByInternalId } from "./chainPicker";
+import { getTokenInfo } from "@/libs/debank";
 
 
 //This is super hacky: native asset gas usage in dollars.
@@ -89,12 +90,13 @@ export async function calculateInputTokenCapacity(debankBalances: DebankTokenInf
                 balance.chain.toLowerCase() === chainName.toLowerCase()//This has some assumptions .
         );
 
-        if (!matchingTokenBalance) {
-            throw new Error("Matching token balance not found (calculateInputTokenCapacity)");
-        }
-
         const requestedInputAmount = parseFloat(input.amount);
         const availableInputAmount = parseFloat(matchingTokenBalance?.balance || "0");
+
+        if (!matchingTokenBalance) {
+            //Input token is not in the debank balances, not a funding asset.
+            continue;
+        }
 
         if (availableInputAmount >= requestedInputAmount) {
             let usdValue = requestedInputAmount * matchingTokenBalance.price;
@@ -126,8 +128,6 @@ export async function calculateInputTokenCapacity(debankBalances: DebankTokenInf
         inputTokenConsumption,
     };
 }
-
-//WIll code this for only one input token for now.
 
 export interface TokenConsumption {
     tokenSymbol: string;
@@ -161,11 +161,13 @@ export async function getInputTokenBufferedDebankBalances(debankBalances: Debank
             inputTokenBufferedDebankBalances.push(balance);
             continue;
         }
-        console.log(`dealing with input token ${foundInputToken.asset.name}`)
+        console.log(`dealing with found input token ${foundInputToken.asset.name}`)
 
-        const inputTokenConsumption = inputTokenCapacity.inputTokenConsumption.find((consumption) => consumption.symbol.toLowerCase() === foundInputToken.asset.symbol.toLowerCase() && consumption.chain.toLowerCase() === opportunity.chain.toLowerCase());
+        const inputTokenConsumption = inputTokenCapacity.inputTokenConsumption.find((consumption) =>
+            consumption.symbol.toLowerCase() === foundInputToken.asset.symbol.toLowerCase() &&
+            consumption.chain.toLowerCase() === opportunity.chain.toLowerCase());
 
-        if(!inputTokenConsumption) {
+        if (!inputTokenConsumption) {
             throw new Error("Input token consumption not found");
         }
 
@@ -187,7 +189,7 @@ export async function getInputTokenBufferedDebankBalances(debankBalances: Debank
 }
 
 
-export async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[], operationsPerChain: Map<number, number>): Promise<DebankTokenInfo[]> {    
+export async function getGasBufferedDebankBalances(debankBalances: DebankTokenInfo[], operationsPerChain: Map<number, number>): Promise<DebankTokenInfo[]> {
     const gasBufferedDebankBalances: DebankTokenInfo[] = [];
     for (const balance of debankBalances) {
         const assetInfo = await getAssetBySymbolAndChain(balance.symbol, balance.chain.toLowerCase());
@@ -226,7 +228,7 @@ export function gasTokenSafetyCheck(gasBufferedDebankBalances: DebankTokenInfo[]
         }
         const chainNumber = getViemChainByInternalId(balance.chain.toLowerCase()).id;
         const numberOfOperations = operationsPerChain.get(chainNumber);
-        if(!numberOfOperations) {
+        if (!numberOfOperations) {
             continue;
         }
         console.log(`numberOfOperations: ${numberOfOperations} on chain ${balance.chain}`);
@@ -244,12 +246,32 @@ async function getInputTokenUSDGoal(gasBufferedDebankBalances: DebankTokenInfo[]
             balance.symbol.toLowerCase() === inputTokens[inputTokenIndex]!.asset.symbol.toLowerCase() &&
             balance.chain.toLowerCase() === opportunity.chain.toLowerCase()
     );
-    console.log("inputTokenInfo", inputTokenInfo);
+    let inputTokenPrice;
     if (!inputTokenInfo) {
-        throw new Error("Input token not found debank balances");
+        //Input token is not a funding asset, not in the debank balances.
+        console.log("gasBufferedDebankBalances", gasBufferedDebankBalances);
+        //throw new Error(`Input token not found debank balances ${inputTokens[inputTokenIndex]!.asset.symbol}`);
+        const chainMetadata = await getChainById(opportunity.chain);
+        if (!chainMetadata) {
+            throw new Error("Chain metadata not found");
+        }
+        let tokenIdentifier;
+        if (inputTokens[inputTokenIndex]!.asset.type !== "NATIVE") {
+            tokenIdentifier = inputTokens[inputTokenIndex]!.asset.address;
+        } else {
+            tokenIdentifier = chainMetadata.debankName
+        }
+        const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
+        inputTokenPrice = tokenInfo.price;
+    }else{
+        inputTokenPrice = inputTokenInfo.price;
     }
-    const inputTokenPrice = inputTokenInfo.price;
-    const goalUSDValue = (parseFloat(inputTokens[inputTokenIndex]!.amount) - inputTokenCapacity.inputTokenConsumption[inputTokenIndex]!.tokenAmount) * inputTokenPrice;
+
+
+    const inputTokenConsumption = inputTokenCapacity.inputTokenConsumption.find((consumption) => consumption.symbol.toLowerCase() === inputTokens[inputTokenIndex]!.asset.symbol.toLowerCase());
+    const inputTokenCapacityTokenAmount = inputTokenConsumption ? inputTokenConsumption.tokenAmount : 0;
+
+    const goalUSDValue = (parseFloat(inputTokens[inputTokenIndex]!.amount) - inputTokenCapacityTokenAmount) * inputTokenPrice;
 
     console.log("goalUSDValue", goalUSDValue);
     return goalUSDValue;

@@ -16,6 +16,7 @@ export const assets = schema.table(
     priceUSD: text("price_usd"),
     decimals: integer("decimals").notNull(),
     tokenType: text("token_type", { enum: ["ERC20", "ERC721", "ERC1155", "NATIVE"] }).notNull(),
+    supportedByDebank: boolean("supported_by_debank"),
   }
 );
 

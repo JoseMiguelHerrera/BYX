@@ -100,6 +100,25 @@ export async function createTransaction(
         );
         txs.push(...approvalTxs5, mintTx5);
         break;
+      case "8":
+      case "9":
+      case "10":
+      case "11":
+      case "12":
+      case "13":
+      case "14":
+      case "15":
+      case "16":
+      case "17":
+      case "18":
+      case "19":
+      case "20":
+      case "21":
+      case "22":
+      case "23":
+      case "24":
+      case "25":
+      case "26":
       case "6":
         let approvalTxs6 = await createDualTokenApprovalTransactions(
           opportunity,
@@ -166,6 +185,25 @@ export async function createTransaction(
         );
         txs.push(...totalRedeemTxs5);
         break;
+      case "8":
+      case "9":
+      case "10":
+      case "11":
+      case "12":
+      case "13":
+      case "14":
+      case "15":
+      case "16":
+      case "17":
+      case "18":
+      case "19":
+      case "20":
+      case "21":
+      case "22":
+      case "23":
+      case "24":
+      case "25":
+      case "26":
       case "6":
         let approvalTx6 = await createKodiakIslandApprovalTransaction(
           opportunity,
@@ -294,8 +332,10 @@ export async function getInvestmentInfo(
       result = await getUniswapLPInfo(opportunity, userAddress);
       break;
     case "Kodiak":
-      result = await getUniswapLPInfo(opportunity, userAddress);
-      break;
+      if(opportunity.type === "LP"){
+        result = await getUniswapLPInfo(opportunity, userAddress);
+        break;
+      } 
   }
   return result;
 }

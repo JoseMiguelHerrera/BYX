@@ -69,6 +69,7 @@ export interface DebankTokenInfo {
 }
 
 //This should go somewhere else like in a debank api wrapper.
+//This only gets you the "chain assets" aka the funding assets.
 export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
   //When we have the database, this should be cached.
   const chainsMetadata = await getChainMetadata();
