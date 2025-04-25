@@ -2,8 +2,10 @@ import { useLayoutStore } from "@/store/layout";
 import useOpportunitiesStore from "@/store/opportunities";
 import { OpportunityId } from "@/types";
 import { OpportunityData } from "../api/dataModels";
+import { useRouter } from "next/navigation";
 
 function useTabs() {
+  const router = useRouter();
   const {
     opportunities,
     activeTab: _activeTab,
@@ -32,6 +34,8 @@ function useTabs() {
 
   const setActiveTab = (tab: OpportunityId) => {
     _setActiveTab(tab);
+
+    // window.history.pushState({}, "", `/new/markets/${tab}`);
   };
 
   const tabs = _tabs

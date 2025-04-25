@@ -5,7 +5,7 @@ import PageTabs from "./components/PageTabs";
 import MarketHeader from "./components/MarketHeader";
 import OrderPanel from "./components/OrderPanel";
 import PositionsAndOrders from "./components/PositionsAndOrders";
-import MarketComponents from "@/components/containers/MarketComponents";
+import MarketComponents from "@/containers/MarketComponents";
 
 function MarketPage() {
   return (

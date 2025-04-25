@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
-
+body { 
+  overscroll-behavior: none;
+}
 @theme {
   --font-main: "JetBrains Mono", monospace;
 
@@ -23,4 +25,8 @@
   --color-order-panel-bottom: rgba(183, 110, 121, 0.24);
   --color-order-panel-top: rgba(183, 110, 121, 0.00);
 
+}
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }

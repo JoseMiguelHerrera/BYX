@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${jetbrainsMono.variable}`}>
+      <body className={`${jetbrainsMono.variable} font-main`}>
         <Providers>{children}</Providers>
       </body>
     </html>

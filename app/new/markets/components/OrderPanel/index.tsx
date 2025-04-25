@@ -14,7 +14,7 @@ function OrderPanel() {
   );
   const [isHovering, setIsHovering] = React.useState(false);
   return (
-    <Block border padding={false} className={cn("flex flex-col relative")}>
+    <Block border padding={false} className={cn("flex flex-col relative h-fit")}>
       {/* Top header */}
       <div className={cn("w-full grid grid-cols-2")}>
         <TabItem active>Order Ticket</TabItem>
@@ -28,7 +28,7 @@ function OrderPanel() {
         <OrderTypes />
 
         {/* Inputs */}
-        <div className={cn("flex flex-col gap-2")}>
+        <div className={cn("flex flex-col gap-2 z-50")}>
           <span className={cn("text-sm text-foreground-secondary")}>
             Quantity
           </span>
@@ -80,7 +80,7 @@ function OrderPanel() {
             "top-0 absolute left-0 right-0 bottom-0 overflow-hidden"
           )}
         >
-          <div className="absolute h-[400px] mask-radial-to-80% left-0 -bottom-[150px] bg-[url('/svg/dot-pattern.svg')] bg-repeat bg-bottom w-full" />
+          <div className="absolute h-[258px] mask-radial-to-80% left-0 bottom-[16px] bg-[url('/svg/dot-pattern.svg')] bg-repeat bg-bottom w-full" />
           <div
             className={cn(
               "absolute top-0 left-0 right-0 bottom-4 overflow-hidden"

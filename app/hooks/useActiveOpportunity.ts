@@ -8,7 +8,7 @@ function useActiveOpportunity() {
   const opportunity = opportunities.find((opportunity) => opportunity.id === activeTab);
 
   if (!opportunity) {
-    return null;
+    return undefined;
   }
 
   return {

@@ -20,3 +20,16 @@ export enum PositionsTab {
 }
 
 export type OpportunityId = string
+
+export enum MarketComponent {
+  MarketData = 'MarketData',
+  Firehose = 'Firehose',
+  Portfolio = 'Portfolio',
+  LiquidityPools = 'LiquidityPools',
+}
+
+export enum ProtocolLogo {
+  Uniswap = 'uniswap.svg',
+  Aave = 'aave.svg',
+  Kodiak = 'kodiak.svg',
+}
