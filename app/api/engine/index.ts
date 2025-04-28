@@ -19,9 +19,11 @@ import {
   createAaveV3SupplyTransaction,
   createAaveV3WithdrawTransaction,
 } from "./aave/aave";
-import { createErc20ApprovalTransaction,createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
+import { createDualTokenApprovalTransactions } from "./generic/approveErc20Token";
 import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransaction, createKodiakIslandRedeemTransaction } from "./kodiakIsland/kodiakIsland";
 import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
+import { performCrossChainSwap } from "./crossChainSwaps/consumeCrossChainTokens";
+import { PrivyClient } from "@privy-io/server-auth";
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -29,6 +31,7 @@ export async function createTransaction(
   inputAmounts: TokenInput[],
   type: TransactionType,
   extraData: any[] = [],
+  privyClient: PrivyClient
 ) {
   console.log("createTransaction");
   console.log(`opportunity: ${JSON.stringify(opportunity)}`);
@@ -38,9 +41,10 @@ export async function createTransaction(
   console.log(`extraData: ${JSON.stringify(extraData)}`);
 
   //make this live longer, no need to remake it every time.
-  const serverSideTransactions = new ServerSideTransactions();
+  const serverSideTransactions = new ServerSideTransactions(privyClient);
   let txs: any[] = [];
   if (type === TransactionType.Invest) {
+    opportunity.supportsAutoSwap && await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
     switch (opportunity.id) {
       case "1":
         let tx = await createLidoSubmitTransaction(
@@ -96,34 +100,53 @@ export async function createTransaction(
         );
         txs.push(...approvalTxs5, mintTx5);
         break;
-        case "6":
-          let approvalTxs6 = await createDualTokenApprovalTransactions(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let mintTx6 = await createKodiakIslandMintTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            approvalTxs6.length,
-            extraData,
-          );
-          txs.push(...approvalTxs6, mintTx6);
-          break;
-        case "7":
-          let approvalTx7 = await createInfraredStakeApprovalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let stakeTx7 = await createInfraredStakeTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            1
-          );
-          txs.push(approvalTx7,stakeTx7);
+      case "8":
+      case "9":
+      case "10":
+      case "11":
+      case "12":
+      case "13":
+      case "14":
+      case "15":
+      case "16":
+      case "17":
+      case "18":
+      case "19":
+      case "20":
+      case "21":
+      case "22":
+      case "23":
+      case "24":
+      case "25":
+      case "26":
+      case "6":
+        let approvalTxs6 = await createDualTokenApprovalTransactions(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let mintTx6 = await createKodiakIslandMintTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          approvalTxs6.length,
+          extraData,
+        );
+        txs.push(...approvalTxs6, mintTx6);
+        break;
+      case "7":
+        let approvalTx7 = await createInfraredStakeApprovalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let stakeTx7 = await createInfraredStakeTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          1
+        );
+        txs.push(approvalTx7, stakeTx7);
     }
   } else if (type === TransactionType.Divest) {
     switch (opportunity.id) {
@@ -153,38 +176,57 @@ export async function createTransaction(
         );
         txs.push(aaveWithdrawTx);
         break;
-        case "5":
-          let totalRedeemTxs5 = await createRedeemTotalUniswapLPTransactions(
-            opportunity,
-            userAddress,
-            0,
-            extraData,
-          );
-          txs.push(...totalRedeemTxs5);
-          break;
-        case "6":
-          let approvalTx6 = await createKodiakIslandApprovalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-          );
-          let redeemTx6 = await createKodiakIslandRedeemTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts,
-            1,
-            extraData,
-          );
-          txs.push(approvalTx6, redeemTx6);
-          break;
-        case "7":
-          const infraredWithdrawalTx = await createInfraredWithdrawalTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts
-          );
-          txs.push(infraredWithdrawalTx);
-          break;
+      case "5":
+        let totalRedeemTxs5 = await createRedeemTotalUniswapLPTransactions(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(...totalRedeemTxs5);
+        break;
+      case "8":
+      case "9":
+      case "10":
+      case "11":
+      case "12":
+      case "13":
+      case "14":
+      case "15":
+      case "16":
+      case "17":
+      case "18":
+      case "19":
+      case "20":
+      case "21":
+      case "22":
+      case "23":
+      case "24":
+      case "25":
+      case "26":
+      case "6":
+        let approvalTx6 = await createKodiakIslandApprovalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+        );
+        let redeemTx6 = await createKodiakIslandRedeemTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts,
+          1,
+          extraData,
+        );
+        txs.push(approvalTx6, redeemTx6);
+        break;
+      case "7":
+        const infraredWithdrawalTx = await createInfraredWithdrawalTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts
+        );
+        txs.push(infraredWithdrawalTx);
+        break;
     }
   } else if (type === TransactionType.RequestDivest) {
     switch (opportunity.id) {
@@ -213,23 +255,23 @@ export async function createTransaction(
         );
         txs.push(collectRewardsTx);
         break;
-        case "5":
-          let collectRewardsTx5 = await createCollectRewardsTransaction(
-            opportunity,
-            userAddress,
-            0,
-            extraData,
-          );
-          txs.push(collectRewardsTx5);
-          break;
-        case "7":
-          const infraredCollectRewardsTx = await createInfraredCollectRewardsTransaction(
-            opportunity,
-            userAddress,
-            inputAmounts
-          );
-          txs.push(infraredCollectRewardsTx);
-          break;
+      case "5":
+        let collectRewardsTx5 = await createCollectRewardsTransaction(
+          opportunity,
+          userAddress,
+          0,
+          extraData,
+        );
+        txs.push(collectRewardsTx5);
+        break;
+      case "7":
+        const infraredCollectRewardsTx = await createInfraredCollectRewardsTransaction(
+          opportunity,
+          userAddress,
+          inputAmounts
+        );
+        txs.push(infraredCollectRewardsTx);
+        break;
     }
   } else {
     throw new Error("Invalid transaction type");
@@ -248,6 +290,8 @@ export async function createTransaction(
     //TODO: return input and output assets here.
   }
 }
+
+
 
 export async function getWithdrawalStatus(
   opportunity: OpportunityData,
@@ -288,8 +332,10 @@ export async function getInvestmentInfo(
       result = await getUniswapLPInfo(opportunity, userAddress);
       break;
     case "Kodiak":
-      result = await getUniswapLPInfo(opportunity, userAddress);
-      break;
+      if(opportunity.type === "LP"){
+        result = await getUniswapLPInfo(opportunity, userAddress);
+        break;
+      } 
   }
   return result;
 }

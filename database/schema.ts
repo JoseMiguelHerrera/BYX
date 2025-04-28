@@ -16,6 +16,7 @@ export const assets = schema.table(
     priceUSD: text("price_usd"),
     decimals: integer("decimals").notNull(),
     tokenType: text("token_type", { enum: ["ERC20", "ERC721", "ERC1155", "NATIVE"] }).notNull(),
+    supportedByDebank: boolean("supported_by_debank"),
   }
 );
 
@@ -41,6 +42,7 @@ export const opportunities = schema.table(
     type: text("type", { enum: ["Lending", "LP", "Staking", "AutoLP", "Vault"] }).notNull(),
     protocolName: text("protocol_name").notNull(),
     hasCollectableRewards: boolean("has_collectable_rewards").notNull(),
+    supportsAutoSwap: boolean("supports_auto_swap").notNull(),
   }
 );
 

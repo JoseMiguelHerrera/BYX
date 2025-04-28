@@ -1,9 +1,10 @@
 import { Chain, encodeFunctionData, http, parseUnits, PublicClient } from "viem";
 import { Address, createPublicClient } from "viem";
 import { Asset } from "../dataModels";
-import { getViemChain } from "./chainPicker";
+import { getViemChainByInternalId } from "./chainPicker";
 import { erc20ABI } from "../abis";
 import ServerSideTransactions from "./serverSideTransactions";
+import { PrivyClient } from "@privy-io/server-auth";
 
 export async function withdraw(
   smartWalletAddress: string,
@@ -11,14 +12,15 @@ export async function withdraw(
   asset: Asset,
   amount: string,
   recipientAddress: Address,
+  privyClient: PrivyClient
 ) {
 
-    const viemChain = getViemChain(chainId);
+    const viemChain = getViemChainByInternalId(chainId);
     const client = createPublicClient({
       chain: viemChain,
       transport: http(), // Use default RPC
     });
-    const serverSideTransactions = new ServerSideTransactions();
+    const serverSideTransactions = new ServerSideTransactions(privyClient);
 
     const nonce =
       (await client.getTransactionCount({ address: smartWalletAddress as Address }))
