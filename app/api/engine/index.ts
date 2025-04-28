@@ -5,7 +5,7 @@ import {
   getLidoWithdrawalRequests,
   createLidoWithdrawalTransaction,
 } from "./lido/lido";
-import { OpportunityData, TokenInput, TransactionType } from "../dataModels";
+import { Asset, OpportunityData, TokenInput, TransactionType, TxAssetAmountInfo } from "../dataModels";
 import ServerSideTransactions from "./serverSideTransactions";
 import {
   createCollectRewardsTransaction,
@@ -24,6 +24,92 @@ import { createKodiakIslandApprovalTransaction, createKodiakIslandMintTransactio
 import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTransaction, createInfraredStakeTransaction, createInfraredWithdrawalTransaction } from "./infrared/infrared";
 import { performCrossChainSwap } from "./crossChainSwaps/consumeCrossChainTokens";
 import { PrivyClient } from "@privy-io/server-auth";
+import { getChainById } from "@/database/queries";
+import { getUserTokenBalanceInfo } from "@/libs/debank";
+
+
+interface UserFungibleTokenBalanceInfo {
+  tokenIdentifier: string;
+  price: number;
+  tokenAmount: number;
+}
+async function _getUserFungibleTokenBalanceInfo(
+  userAddress: string,
+  opportunity: OpportunityData,
+  asset: Asset
+): Promise<UserFungibleTokenBalanceInfo> {
+  const tokenAddress = asset.address;
+  const chainMetadata = await getChainById(opportunity.chain);
+  if (!chainMetadata) {
+    throw new Error(`Chain metadata not found for opportunity ${opportunity.id}`);
+  }
+  const debankChainId = chainMetadata.debankName;
+  const tokenIdentifier = tokenAddress ? tokenAddress : debankChainId
+
+  const userTokenBalanceInfo = await getUserTokenBalanceInfo(userAddress, debankChainId, tokenIdentifier);
+  console.log("userTokenBalanceInfo", userTokenBalanceInfo);
+  return {
+    tokenIdentifier: tokenIdentifier,
+    price: userTokenBalanceInfo.price,
+    tokenAmount: userTokenBalanceInfo.amount,
+  }
+}
+
+//This basically calculates net difference between pre and post investment snapshots.
+async function generateTxAssetAmountInfo(
+  preInvestmentSnapshots: UserFungibleTokenBalanceInfo[],
+  postInvestmentSnapshots: UserFungibleTokenBalanceInfo[],
+  assetList: Asset[]
+): Promise<TxAssetAmountInfo[]> {
+  let index = 0
+  let inputTxAssetAmountInfo: TxAssetAmountInfo[] = []
+  for (const asset of assetList) {
+    const preInvestmentSnapshot = preInvestmentSnapshots[index]
+    const postInvestmentSnapshot = postInvestmentSnapshots[index]
+    if (preInvestmentSnapshot && postInvestmentSnapshot) {
+      const tokenAmount = preInvestmentSnapshot.tokenAmount - postInvestmentSnapshot.tokenAmount
+      //Not exact, but close enough.
+      const usdAmount = tokenAmount * postInvestmentSnapshot.price
+      inputTxAssetAmountInfo.push({
+        assetId: asset.id,
+        tokenAmount: Math.abs(tokenAmount).toString(),
+        usdAmount: Math.abs(usdAmount).toString(),
+      });
+    } else {
+      //Should never happen.
+      console.log(`No snapshot pair was found for input asset ${asset.name}`);
+    }
+    index++
+  }
+  return inputTxAssetAmountInfo;
+}
+
+async function captureAssetSnapshots(opportunity: OpportunityData, userAddress: string) {
+  let inputAssetSnapshot: UserFungibleTokenBalanceInfo[] = []
+  let outputAssetSnapshot: UserFungibleTokenBalanceInfo[] = []
+  //Capture input token(s) snapshots(s)
+  for (const inputAsset of opportunity.inputAssets) {
+    console.log("inputAsset", inputAsset);
+    if (inputAsset.type === "ERC20" || inputAsset.type === "NATIVE") {
+      inputAssetSnapshot.push(await _getUserFungibleTokenBalanceInfo(userAddress, opportunity, inputAsset));
+    } else {
+      //Need different approach for NFTs
+    }
+  }
+
+  //Capture output token(s) snapshots(s)
+  for (const outputAsset of opportunity.outputAssets) {
+    if (outputAsset.type === "ERC20" || outputAsset.type === "NATIVE") {
+      outputAssetSnapshot.push(await _getUserFungibleTokenBalanceInfo(userAddress, opportunity, outputAsset));
+    } else {
+      //Need different approach for NFTs
+    }
+  }
+  return {
+    inputAssetSnapshot,
+    outputAssetSnapshot,
+  }
+}
 
 export async function createTransaction(
   opportunity: OpportunityData,
@@ -40,11 +126,27 @@ export async function createTransaction(
   console.log(`type: ${type}`);
   console.log(`extraData: ${JSON.stringify(extraData)}`);
 
+  let inputAssetMovementInfo: TxAssetAmountInfo[] = [];
+  let outputAssetMovementInfo: TxAssetAmountInfo[] = [];
+
+  let preTransactionInputAssetSnapshots: UserFungibleTokenBalanceInfo[] = []
+  let postTransactionInputAssetSnapshots: UserFungibleTokenBalanceInfo[] = []
+
+  let preTransactionOutputAssetSnapshots: UserFungibleTokenBalanceInfo[] = []
+  let postTransactionOutputAssetSnapshots: UserFungibleTokenBalanceInfo[] = []
+
   //make this live longer, no need to remake it every time.
   const serverSideTransactions = new ServerSideTransactions(privyClient);
   let txs: any[] = [];
   if (type === TransactionType.Invest) {
-    opportunity.supportsAutoSwap && await performCrossChainSwap(serverSideTransactions,opportunity, userAddress, inputAmounts);
+    //CrosschainSwap
+    opportunity.supportsAutoSwap && await performCrossChainSwap(serverSideTransactions, opportunity, userAddress, inputAmounts);
+
+    const preInvestmentAssetSnapshots = await captureAssetSnapshots(opportunity, userAddress);
+    preTransactionInputAssetSnapshots = preInvestmentAssetSnapshots.inputAssetSnapshot;
+    preTransactionOutputAssetSnapshots = preInvestmentAssetSnapshots.outputAssetSnapshot;
+
+
     switch (opportunity.id) {
       case "1":
         let tx = await createLidoSubmitTransaction(
@@ -149,6 +251,9 @@ export async function createTransaction(
         txs.push(approvalTx7, stakeTx7);
     }
   } else if (type === TransactionType.Divest) {
+    const preInvestmentAssetSnapshots = await captureAssetSnapshots(opportunity, userAddress);
+    preTransactionInputAssetSnapshots = preInvestmentAssetSnapshots.inputAssetSnapshot;
+    preTransactionOutputAssetSnapshots = preInvestmentAssetSnapshots.outputAssetSnapshot;
     switch (opportunity.id) {
       case "1":
         let tx = await createLidoWithdrawalTransaction(
@@ -245,6 +350,7 @@ export async function createTransaction(
         txs.push(tx1, tx2);
     }
   } else if (type === TransactionType.CollectRewards) {
+    //This is mostly for uniswap v3 positions, need to do something here when we decide to calculate PNL for this.
     switch (opportunity.id) {
       case "2":
         let collectRewardsTx = await createCollectRewardsTransaction(
@@ -282,12 +388,32 @@ export async function createTransaction(
   } else {
     console.log("Finished creating transactions, attempting to send.");
 
-    return serverSideTransactions.sendTransactions(
+    const txHashes = await serverSideTransactions.sendTransactions(
       opportunity.chain,
       userAddress,
       txs,
     );
-    //TODO: return input and output assets here.
+    //Wait a bit for transactions to be extra confirmed.
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+
+    if (type == TransactionType.Invest || type == TransactionType.Divest) {//While we work on other types, we can just use this. 
+      const postTransactionAssetSnapshots = await captureAssetSnapshots(opportunity, userAddress);
+      postTransactionInputAssetSnapshots = postTransactionAssetSnapshots.inputAssetSnapshot;
+      postTransactionOutputAssetSnapshots = postTransactionAssetSnapshots.outputAssetSnapshot;
+
+      //console.log("preInvestmentInputSnapshots", preTransactionInputAssetSnapshots);
+      //console.log("postInvestmentInputSnapshots", postTransactionInputAssetSnapshots);
+      //console.log("preInvestmentOutputSnapshots", preTransactionOutputAssetSnapshots);
+      //console.log("postInvestmentOutputSnapshots", postTransactionOutputAssetSnapshots);
+
+      inputAssetMovementInfo = await generateTxAssetAmountInfo(preTransactionInputAssetSnapshots, postTransactionInputAssetSnapshots, opportunity.inputAssets);
+      outputAssetMovementInfo = await generateTxAssetAmountInfo(preTransactionOutputAssetSnapshots, postTransactionOutputAssetSnapshots, opportunity.outputAssets);
+    }
+    return {
+      inputTxAssetAmountInfo: inputAssetMovementInfo,
+      outputTxAssetAmountInfo: outputAssetMovementInfo,
+      txHashes,
+    };
   }
 }
 
@@ -332,10 +458,11 @@ export async function getInvestmentInfo(
       result = await getUniswapLPInfo(opportunity, userAddress);
       break;
     case "Kodiak":
-      if(opportunity.type === "LP"){
+      if (opportunity.type === "LP") {
         result = await getUniswapLPInfo(opportunity, userAddress);
         break;
-      } 
+      }
   }
   return result;
 }
+

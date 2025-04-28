@@ -112,6 +112,7 @@ export async function performCrossChainSwap(
   }
 
 
+  console.log("Cross chain swaps complete");
   //We have to do this because privy is using another RPC node than us, so we have to wait for the transactions to be sync'd by both.
   await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
 }
