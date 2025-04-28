@@ -12,7 +12,7 @@ import {
 } from "viem/chains"; //hard coded for now
 
 
-enum InternalChainId {
+export enum InternalChainId {
   ArbitrumSepolia = "arbitrum-sepolia",
   Arbitrum = 'arbitrum',
   EthereumSepolia = 'ethereum-sepolia',
@@ -25,7 +25,7 @@ enum InternalChainId {
 }
 
 
-export function getViemChainByInternalId(chainId: InternalChainId): Chain {
+export function getViemChainByInternalId(chainId: string): Chain {
   switch (chainId) {
     case InternalChainId.ArbitrumSepolia:
       return arbitrumSepolia;
@@ -45,6 +45,8 @@ export function getViemChainByInternalId(chainId: InternalChainId): Chain {
       return berachain;
     case InternalChainId.BerachainTestnet:
       return berachainTestnetbArtio;
+    default:
+      throw new Error("Invalid chain");
   }
 }
 

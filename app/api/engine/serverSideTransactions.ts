@@ -2,7 +2,7 @@ import { PrivyClient } from "@privy-io/server-auth";
 import dotenv from "dotenv";
 import { Address, http } from "viem";
 import { createPublicClient } from "viem";
-import { getViemChainByInternalId } from "./chainPicker";
+import { getViemChainByInternalId, InternalChainId } from "./chainPicker";
 dotenv.config();
 
 export default class ServerSideTransactions {
@@ -16,7 +16,7 @@ export default class ServerSideTransactions {
     userAddress: string,
     transactions: any[],
   ) {
-    if (chain === "arbitrum") {
+    if (chain === InternalChainId.Arbitrum) {
       //TODO: figure out how to simulate arbitrum transactions if this way is not possible.
       console.log("Simulation not supported for arbitrum");
       return;
