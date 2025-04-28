@@ -1,20 +1,20 @@
 import { OpportunityData, TokenInput } from "../dataModels";
 import { DebankTokenInfo } from "../balances/route";
 import { getAssetBySymbolAndChain, getChainById } from "@/database/queries";
-import { getViemChainByInternalId } from "./chainPicker";
+import { getViemChainByInternalId, InternalChainId } from "./chainPicker";
 import { getTokenInfo } from "@/libs/debank";
 
 
 //This is super hacky: native asset gas usage in dollars.
 export function getUSDGasBuffer(chainId: string, numberOfOperations: number): number {
     switch (chainId) {
-        case "arbitrum":
+        case InternalChainId.Arbitrum:
             return 0.66 * numberOfOperations;
-        case "ethereum":
+        case InternalChainId.Ethereum:
             return 3.50 * numberOfOperations;
-        case "berachain":
+        case InternalChainId.Berachain:
             return 1 * numberOfOperations;
-        case "base":
+        case InternalChainId.Base:
             return 0.66 * numberOfOperations;
     }
     throw new Error("Invalid chain");
