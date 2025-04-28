@@ -59,7 +59,7 @@ export default function Positions({ smartWalletAddress }: PositionsProps) {
   }, [smartWalletAddress]); // Dependency array ensures fetch runs when address changes
 
   return (
-    <main className="w-full flex items-center justify-center bg-[#e0e0e0] py-10"> {/* Adjusted background for visibility */}
+    <main className="w-full flex items-center justify-center py-10">
       <div className="max-w-4xl w-full mx-8 bg-white p-8 rounded-lg shadow-lg space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Positions</h1>
@@ -107,10 +107,10 @@ export default function Positions({ smartWalletAddress }: PositionsProps) {
                       USD Value
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      PnL (USD)
+                      Lifetime PnL (USD)
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      PnL (%)
+                      Lifetime PnL (%)
                     </th>
                   </tr>
                 </thead>
@@ -141,14 +141,17 @@ export default function Positions({ smartWalletAddress }: PositionsProps) {
                           })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                          $
-                          {position.pnlUsd.toLocaleString(undefined, {
-                            minimumFractionDigits: 4,
-                            maximumFractionDigits: 4,
-                          })}
+                          {position.pnlUsd === undefined ? 'N/A' : // Check if pnlUsd is undefined
+                            `$${position.pnlUsd.toLocaleString(undefined, { // Format if defined
+                              minimumFractionDigits: 4,
+                              maximumFractionDigits: 4,
+                            })}`
+                          }
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                         {(position.pnlPercent).toFixed(2)}%
+                         {position.pnlPercent === undefined ? 'N/A' : // Check if pnlPercent is undefined
+                           `${(position.pnlPercent).toFixed(2)}%` // Format if defined
+                         }
                        </td>
                       </tr>
                     );
@@ -168,6 +171,16 @@ export default function Positions({ smartWalletAddress }: PositionsProps) {
            {!smartWalletAddress && (
             <p className="text-orange-500">Please connect your wallet to see positions.</p>
           )}
+
+          {/* Added Information Box */}
+          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700 space-y-2">
+            <p>
+              <strong className="font-medium">Note:</strong> Currently we don't show Uniswap V3 positions here. Please visit the Uniswap position page to see position value and rewards.
+            </p>
+            <p>
+              PnL values represent the <em className="font-medium">lifetime PnL</em> for your historical investment in a particular opportunity.
+            </p>
+          </div>
         </div>
       </div>
     </main>

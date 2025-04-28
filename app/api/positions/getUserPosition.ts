@@ -96,8 +96,8 @@ async function calculatePnl(userAddress: string, userPositions: UserPosition[]):
         if (!position.address || typeof position.usdValue !== 'number') {//This check is redundant.
             console.warn("Skipping PnL calculation for position due to missing address or usdValue:", position);
             // Ensure PnL values are set to 0 if skipped
-            position.pnlUsd = 0;
-            position.pnlPercent = 0;
+            position.pnlUsd = undefined;
+            position.pnlPercent = undefined;
             continue;
         }
         const addressLower = position.address.toLowerCase();
@@ -119,18 +119,18 @@ async function calculatePnl(userAddress: string, userPositions: UserPosition[]):
             } else {
                 // Handle division by zero: If cost basis (sumUsdIn) is 0
                 // Defaulting to 0. Can be adjusted if infinite gain needs specific handling.
-                position.pnlPercent = 0;
+                position.pnlPercent = undefined;
             }
 
              // Handle potential NaN/Infinity display if needed before rounding
-             if (!isFinite(position.pnlPercent)) {
-                 position.pnlPercent = 0; // Fallback for safety, adjust if specific large value is needed
+             if (position.pnlPercent && !isFinite(position.pnlPercent)) {
+                 position.pnlPercent = undefined; // Fallback for safety, adjust if specific large value is needed
              }
 
         } else {
             // If there are no historical movements found for this asset address
-             position.pnlUsd = 0; // PnL requires historical data
-             position.pnlPercent = 0;
+             position.pnlUsd = undefined; // PnL requires historical data
+             position.pnlPercent = undefined;
         }
 
     }

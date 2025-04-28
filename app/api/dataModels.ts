@@ -98,6 +98,6 @@ export interface UserPosition {
   address: string;
   amount: number;
   usdValue: number;
-  pnlUsd: number;
-  pnlPercent: number;
+  pnlUsd: number | undefined;
+  pnlPercent: number | undefined;
 }
