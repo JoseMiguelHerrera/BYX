@@ -28,36 +28,36 @@ export type BalanceErrorResponse = {
   error: string;
 };
 
-async function getNativeAssetBalance(address: Address, viemChain: Chain) {
-  const client = createPublicClient({
-    chain: viemChain,
-    transport: http(), // Use default RPC
-  });
+// async function getNativeAssetBalance(address: Address, viemChain: Chain) {
+//   const client = createPublicClient({
+//     chain: viemChain,
+//     transport: http(), // Use default RPC
+//   });
 
-  const balance = await client.getBalance({ address });
-  return formatUnits(balance, viemChain.nativeCurrency.decimals);
-}
+//   const balance = await client.getBalance({ address });
+//   return formatUnits(balance, viemChain.nativeCurrency.decimals);
+// }
 
-async function getERC20Balance(
-  address: Address,
-  viemChain: Chain,
-  assetAddress: string
-) {
-  const client = createPublicClient({
-    chain: viemChain,
-    transport: http(), // Use default RPC
-  });
+// async function getERC20Balance(
+//   address: Address,
+//   viemChain: Chain,
+//   assetAddress: string
+// ) {
+//   const client = createPublicClient({
+//     chain: viemChain,
+//     transport: http(), // Use default RPC
+//   });
 
-  const contract = getContract({
-    address: assetAddress as Address,
-    abi: erc20ABI,
-    client: client,
-  });
+//   const contract = getContract({
+//     address: assetAddress as Address,
+//     abi: erc20ABI,
+//     client: client,
+//   });
 
-  const balance = await contract.read.balanceOf([address]);
-  const decimals = await contract.read.decimals();
-  return formatUnits(balance, decimals);
-}
+//   const balance = await contract.read.balanceOf([address]);
+//   const decimals = await contract.read.decimals();
+//   return formatUnits(balance, decimals);
+// }
 
 export interface DebankTokenInfo {
   chain: string;

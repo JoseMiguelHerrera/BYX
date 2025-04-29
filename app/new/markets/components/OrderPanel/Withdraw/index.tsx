@@ -27,6 +27,7 @@ function WithdrawInputs() {
   }
 
   if (
+    // @ts-ignore
     onCompleteDivest &&
     !isImmediateWithdrawal &&
     opportunityWithdrawalType === "NFT"

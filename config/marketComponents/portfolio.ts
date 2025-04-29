@@ -1,11 +1,10 @@
 import { MarketComponent } from "@/types";
-import { Breakpoints, LayoutConfig } from ".";
+import { Breakpoints } from ".";
 import { getComponentKey } from "@/containers/MarketComponents";
-
-// cols={{ lg: 8, md: 6, sm: 4, xs: 3, xxs: 2 }}
+import ReactGridLayout from "react-grid-layout";
 
 const COMPONENT_KEY = getComponentKey(MarketComponent.Portfolio);
-const config: Record<Breakpoints, LayoutConfig> = {
+const config: Record<Breakpoints, ReactGridLayout.Layout> = {
   xxs: {
     w: 2,
     h: 4,

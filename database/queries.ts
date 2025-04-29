@@ -395,6 +395,7 @@ export async function getAssetBySymbolAndChain(symbol: string, chainId: string):
       priceUSD: schema.assets.priceUSD,
       decimals: schema.assets.decimals,
       tokenType: schema.assets.tokenType,
+      supportedByDebank: schema.assets.supportedByDebank,
     })
     .from(schema.assets)
     .innerJoin(
