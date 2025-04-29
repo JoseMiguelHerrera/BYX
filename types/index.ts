@@ -33,3 +33,13 @@ export enum ProtocolLogo {
   Aave = 'aave.svg',
   Kodiak = 'kodiak.svg',
 }
+
+export type InvestmentInfo = {
+  LpPriceInfo: {
+    price: string;
+    priceOf: string;
+    priceIn: string;
+  };
+  fee: string;
+  sqrtPriceX96: string
+};

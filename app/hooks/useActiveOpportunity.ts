@@ -1,11 +1,15 @@
 import useOpportunitiesStore from "@/store/opportunities";
-
-function useActiveOpportunity() {
+import { OpportunityData } from "../api/dataModels";
+function useActiveOpportunity():
+  | (OpportunityData & { isFavorite: boolean })
+  | undefined {
   const data = useOpportunitiesStore();
 
-  const { opportunities, activeTab, favorites } = data
+  const { opportunities, activeTab, favorites } = data;
 
-  const opportunity = opportunities.find((opportunity) => opportunity.id === activeTab);
+  const opportunity = opportunities.find(
+    (opportunity) => opportunity.id === activeTab
+  );
 
   if (!opportunity) {
     return undefined;

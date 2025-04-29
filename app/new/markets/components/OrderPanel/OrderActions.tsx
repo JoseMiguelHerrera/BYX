@@ -1,10 +1,10 @@
 import { OrderAction } from "@/types";
 import React from "react";
-import { useMarketDetailsStore } from "../../state";
 import { cn } from "@/utils/classnames";
 import { motion } from "motion/react";
+import useOrderStore from "./orderStore";
 function OrderActions() {
-  const { selectedAction, setSelectedAction } = useMarketDetailsStore();
+  const { selectedAction, setSelectedAction, isProcessing } = useOrderStore();
   return (
     <div
       className={cn(
@@ -14,7 +14,7 @@ function OrderActions() {
     >
       {Object.values(OrderAction).map((action) => {
         const isActive = selectedAction === action;
-        const isDisabled = action === OrderAction.Harvest;
+        const isDisabled = (action === OrderAction.Harvest) || isProcessing;
         return (
           <button
             className={cn(

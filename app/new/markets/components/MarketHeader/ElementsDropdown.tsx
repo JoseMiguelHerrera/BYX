@@ -12,7 +12,6 @@ function ElementsDropdown() {
   const { addComponent, layout, updateLayout, deleteComponent } =
     useMarketLayout(activeOpportunity);
 
-  console.log({ layout });
   const includesIds = (layout["lg"] || []).map((x) => x.i) || [];
 
   const onClick = (component: MarketComponent) => {

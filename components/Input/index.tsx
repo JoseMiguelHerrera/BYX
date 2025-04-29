@@ -31,6 +31,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "focus:border-primary",
             "transition-all duration-200",
             "outline-none",
+            "placeholder:text-foreground-secondary/30",
             className
           )}
           onChange={handleChange}

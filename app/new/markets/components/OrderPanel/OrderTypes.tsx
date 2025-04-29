@@ -1,14 +1,15 @@
 import { OrderType } from "@/types";
 import React from "react";
-import { useMarketDetailsStore } from "../../state";
 import { cn } from "@/utils/classnames";
+import useOrderStore from "./orderStore";
 
 function OrderTypes() {
-  const { selectedOrderType, setSelectedOrderType } = useMarketDetailsStore();
+  const { selectedOrderType, setSelectedOrderType, isProcessing } =
+    useOrderStore();
   return (
     <div className={cn("grid grid-cols-2 grid-rows-2 gap-0.5")}>
       {Object.values(OrderType).map((orderType) => {
-        const isDisabled = orderType !== OrderType.Market;
+        const isDisabled = orderType !== OrderType.Market || isProcessing;
         const isActive = selectedOrderType === orderType;
         return (
           <button
