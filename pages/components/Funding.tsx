@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useFundWallet } from "@privy-io/react-auth";
-import { getViemChain } from "@/app/api/engine/chainPicker";
+import { getViemChainByInternalId } from "@/app/api/engine/chainPicker";
 import { toast } from "react-toastify";
 import { Asset, ChainMetadata } from "@/app/api/dataModels";
 
 function generateFundingObject(chain: ChainMetadata, asset: Asset) {
-  let viemChain = getViemChain(chain.id);
+  let viemChain = getViemChainByInternalId(chain.id);
 
   let assetConfig: string | { erc20: string };
   if (asset.type === "NATIVE") {

@@ -27,6 +27,23 @@ export async function POST(req: NextRequest) {
   const amount = body.amount;
   const recipientAddress = body.recipientAddress;
 
+  if (
+    !process.env.NEXT_PUBLIC_PRIVY_APP_ID ||
+    !process.env.PRIVY_APP_SECRET ||
+    !process.env.PRIVY_DELEGATION_KEY
+  ) {
+    throw new Error("Missing Privy environment variables");
+  }
+  const privyClient = new PrivyClient(
+    process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+    process.env.PRIVY_APP_SECRET,
+    {
+      walletApi: {
+        authorizationPrivateKey: process.env.PRIVY_DELEGATION_KEY,
+      },
+    },
+  );
+
   if(!smartWalletAddress || !chainId || !asset || !amount || !recipientAddress) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -53,6 +70,7 @@ export async function POST(req: NextRequest) {
       asset,
       amount,
       recipientAddress,
+      privyClient
     );
     
     return NextResponse.json({ transaction: txHash }, { status: 200 });

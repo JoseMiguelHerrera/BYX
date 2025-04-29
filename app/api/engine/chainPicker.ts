@@ -11,25 +11,64 @@ import {
   Chain,
 } from "viem/chains"; //hard coded for now
 
-export function getViemChain(chainId: string): Chain {
+
+export enum InternalChainId {
+  ArbitrumSepolia = "arbitrum-sepolia",
+  Arbitrum = 'arbitrum',
+  EthereumSepolia = 'ethereum-sepolia',
+  EthereumHolesky = 'ethereum-holesky',
+  Ethereum = 'ethereum',
+  Base = 'base',
+  BaseSepolia = 'base-sepolia',
+  Berachain = 'berachain',
+  BerachainTestnet = 'berachain-testnet',
+}
+
+
+export function getViemChainByInternalId(chainId: string): Chain {
   switch (chainId) {
-    case "arbitrum-sepolia":
+    case InternalChainId.ArbitrumSepolia:
       return arbitrumSepolia;
-    case "arbitrum":
+    case InternalChainId.Arbitrum:
       return arbitrum;
-    case "ethereum-sepolia":
+    case InternalChainId.EthereumSepolia:
       return sepolia;
-    case "ethereum-holesky":
+    case InternalChainId.EthereumHolesky:
       return holesky;
-    case "ethereum":
+    case InternalChainId.Ethereum:
       return mainnet;
-    case "base":
+    case InternalChainId.Base:
       return base;
-    case "base-sepolia":
+    case InternalChainId.BaseSepolia:
       return baseSepolia;
-    case "berachain":
+    case InternalChainId.Berachain:
       return berachain;
-    case "berachain-testnet":
+    case InternalChainId.BerachainTestnet:
+      return berachainTestnetbArtio;
+    default:
+      throw new Error("Invalid chain");
+  }
+}
+
+export function getViemChainByChainNumber(chainNumber: number): Chain {
+  switch (chainNumber) {
+    case 421_614:
+      return arbitrumSepolia;
+    case 42_161:
+      return arbitrum;
+    case 11_155_111:
+      return sepolia;
+    case 17000:
+      return holesky;
+    case 1:
+      return mainnet;
+    case 8453:
+      return base;
+    case 84532:
+      return baseSepolia;
+    case 80094:
+      return berachain;
+    case 80084:
       return berachainTestnetbArtio;
   }
   throw new Error("Invalid chain");

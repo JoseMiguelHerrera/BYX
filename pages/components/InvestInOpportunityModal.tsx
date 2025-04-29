@@ -292,6 +292,23 @@ export default function InvestInOpportunityModal({
                       )}
                     </div>
 
+                    {/* Auto Swap Warning Box - Conditionally Styled */}
+                    <div className={`p-4 border rounded-md ${
+                      opportunity.supportsAutoSwap
+                        ? 'bg-green-50 border-green-200 text-green-800'
+                        : 'bg-amber-50 border-amber-200 text-amber-800'
+                    }`}>
+                      {opportunity.supportsAutoSwap ? (
+                        <p>
+                          <strong className="font-medium">Auto Swap Enabled:</strong> This opportunity supports auto swap and bridging. It will automatically consume the most optimal assets in your funding assets to be able to invest in it.
+                        </p>
+                      ) : (
+                        <p>
+                          <strong className="font-medium">Auto Swap Disabled:</strong> This opportunity does not support auto swap and bridging. You need the exact input asset(s) listed above to invest.
+                        </p>
+                      )}
+                    </div>
+
                     {/* Liquidity Range Sliders for LP opportunities */}
                     {opportunity.type === "LP" && (
                       <div className="space-y-4 p-4 border rounded-md">

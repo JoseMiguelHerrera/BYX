@@ -1,5 +1,5 @@
 import { KodiakIslandRouterABI, KodiakIslandABI } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
     Address,
     createPublicClient,
@@ -38,7 +38,7 @@ export async function createKodiakIslandMintTransaction(
     console.log("createKodiakIslandMintTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateKodiakIslandMint(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -66,10 +66,10 @@ export async function createKodiakIslandMintTransaction(
         islandContract: poolContractAddress as Address,
         amount0Desired: token0Desired,
         amount1Desired: token1Desired,
-        amount0Min:
-            (token0Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
-        amount1Min:
-            (token1Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        amount0Min: 0n, //calculate via simulation
+            //(token0Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
+        amount1Min: 0n, //calculate via simulation
+            //(token1Desired * BigInt(100 - SLIPPAGE_PERCENTAGE)) / BigInt(100),
         minShares: BigInt(0),//TODO: calculate via simulation?
         recipient: userAddress as Address,
     };
@@ -117,7 +117,7 @@ export async function createKodiakIslandRedeemTransaction(
     console.log("createKodiakIslandRedeemTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateKodiakIslandRedeem(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC

@@ -1,5 +1,5 @@
 import { InfraredVaultABI } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
     Address,
     createPublicClient,
@@ -25,7 +25,7 @@ export async function createInfraredStakeTransaction(
     console.log("createInfraredStakeTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateInfraredStake(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -107,7 +107,7 @@ export async function createInfraredWithdrawalTransaction(
     console.log("createInfraredWithdrawalTransaction")
     console.log(`extraData: ${JSON.stringify(extraData)}`);
     await validateInfraredWithdrawal(opportunity, tokenInputs, extraData);
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC
@@ -156,7 +156,7 @@ export async function createInfraredCollectRewardsTransaction(
     extraData: any[] = [],
 ) {
     console.log("createInfraredWithdrawalTransaction")
-    const viemChain = getViemChain(opportunity.chain);
+    const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
         transport: http(), // Use default RPC

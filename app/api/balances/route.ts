@@ -9,7 +9,7 @@ import {
 } from "viem";
 import { PrivyClient } from "@privy-io/server-auth";
 import { erc20ABI } from "../abis";
-import { getAllUserTokenList } from "@/libs/debank";
+import { getAllUserTokenList, getTokenInfo } from "@/libs/debank";
 import { getChainMetadata } from "../../../database/queries";
 import { NextRequest, NextResponse } from "next/server";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
@@ -59,16 +59,22 @@ async function getERC20Balance(
   return formatUnits(balance, decimals);
 }
 
-async function getBalancesFromDebank(address: Address) {
+export interface DebankTokenInfo {
+  chain: string;
+  balance: string;
+  symbol: string;
+  usdValue: number;
+  price: number;
+  isNativeAsset: boolean;
+}
+
+//This should go somewhere else like in a debank api wrapper.
+//This only gets you the "chain assets" aka the funding assets.
+export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
   //When we have the database, this should be cached.
   const chainsMetadata = await getChainMetadata();
 
-  let balances: {
-    chain: string;
-    balance: string;
-    symbol: string;
-    usdValue: number;
-  }[] = [];
+  let balances: DebankTokenInfo[] = [] as DebankTokenInfo[];
   const debankTokenList = await getAllUserTokenList(address);
   for (const chainMetadata of chainsMetadata) {
     for (const asset of chainMetadata.assets) {
@@ -89,21 +95,42 @@ async function getBalancesFromDebank(address: Address) {
           balance: debankTokenInfo.amount.toString(),
           symbol: asset.symbol,
           usdValue: usdValue,
+          price: debankTokenInfo.price,
+          isNativeAsset: asset.type==="NATIVE"
         });
       } catch (e: any) {
-        console.log(e.message);
+        let tokenIdentifier;
+        //NOTE: This is a hack to get the token identifier for native assets, because debank names their native assets with the chain name.
+        if(asset.type!=="NATIVE"){
+          tokenIdentifier = asset.address;
+        }else{
+          tokenIdentifier = chainMetadata.debankName
+        }
+        try{
+        const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
         balances.push({
           chain: chainMetadata.name,
           balance: "0",
           symbol: asset.symbol,
           usdValue: 0,
+          price: tokenInfo.price,
+          isNativeAsset: asset.type==="NATIVE"
         });
+        }catch(e:any){
+          balances.push({
+            chain: chainMetadata.name,
+            balance: "0",
+            symbol: asset.symbol,
+            usdValue: 0,
+            price: 0,
+            isNativeAsset: asset.type==="NATIVE"
+          });
+        }
       }
     }
   }
   return balances;
 }
-
 export async function POST(req: NextRequest) {
   // const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
   try {

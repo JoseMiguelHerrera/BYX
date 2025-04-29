@@ -1,5 +1,5 @@
 import { lidoSubmitABI, lidoRequestWithdrawalABI, erc20ABI } from "../../abis";
-import { getViemChain } from "../chainPicker";
+import { getViemChainByInternalId } from "../chainPicker";
 import {
   Address,
   createPublicClient,
@@ -19,8 +19,10 @@ export async function createLidoSubmitTransaction(
   tokenInputs: TokenInput[],
   nonceOffSet: number = 0,
 ) {
+
   await validateInvest(opportunity, tokenInputs);
-  const viemChain = getViemChain(opportunity.chain);
+
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC
@@ -90,7 +92,7 @@ export async function createLidoRequestWithdrawalTransaction(
   nonceOffSet: number = 0,
 ) {
   await validateRequestWithdraw(opportunity, tokenInputs);
-  const viemChain = getViemChain(opportunity.chain);
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC
@@ -134,7 +136,7 @@ export async function createLidoWithdrawalTransaction(
 ) {
   await validateWithdraw(extraData);
   const requestId = extraData[0];
-  const viemChain = getViemChain(opportunity.chain);
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(), // Use default RPC
@@ -172,7 +174,7 @@ export async function getLidoWithdrawalRequests(
   opportunity: OpportunityData,
   userAddress: string,
 ): Promise<RedeemStatus[]> {
-  const viemChain = getViemChain(opportunity.chain);
+  const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
     transport: http(),
@@ -300,3 +302,5 @@ async function validateWithdraw(extraData: any[]) {
     throw new Error("Invalid request ID for withdraw");
   }
 }
+
+
