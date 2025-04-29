@@ -2,7 +2,6 @@ import React from "react";
 import Block from "./index";
 import MoveButton from "../MoveButton";
 import { cn } from "@/utils/classnames";
-import ResizeHandler from "../ResizeHandler";
 
 type WidgetBlockProps = React.ComponentProps<typeof Block> & {
   title: string;
@@ -29,10 +28,10 @@ const WidgetBlock = React.forwardRef<HTMLDivElement, WidgetBlockProps>(
           <span>{title}</span>
         </div>
         {children}
-        {/* <ResizeHandler /> */}
       </Block>
     );
   }
 );
 
+WidgetBlock.displayName = "WidgetBlock";
 export default WidgetBlock;

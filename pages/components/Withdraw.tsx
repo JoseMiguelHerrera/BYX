@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { getViemChain } from "../api/engine/chainPicker";
 import { toast } from "react-toastify";
-import { Asset, ChainMetadata } from "../api/dataModels";
+import { Asset, ChainMetadata } from "@/app/api/dataModels";
 
 function generateWithdrawalObject(chain: ChainMetadata, asset: Asset, amount: string, recipientAddress: string) {
   return {
@@ -94,7 +93,7 @@ export default function Funding({
         <div className="p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
           <h3 className="text-lg font-semibold text-yellow-800 mb-2">Important</h3>
           <ul className="list-disc pl-5 text-yellow-700">
-            <li>Make sure that you control the wallet you're withdrawing to</li>
+            <li>Make sure that you control the wallet you&apos;re withdrawing to</li>
             <li>Check that you have enough assets</li>
           </ul>
         </div>

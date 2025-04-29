@@ -39,4 +39,5 @@ const Block = React.forwardRef<HTMLDivElement, BlockProps>(
   }
 );
 
+Block.displayName = "Block";
 export default Block;

@@ -21,4 +21,5 @@ const ResizeHandler = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
   );
 });
 
+ResizeHandler.displayName = "ResizeHandler";
 export default ResizeHandler;
