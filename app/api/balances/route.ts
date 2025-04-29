@@ -1,16 +1,7 @@
 import { cookies } from "next/headers";
-import {
-  createPublicClient,
-  http,
-  Address,
-  Chain,
-  formatUnits,
-  getContract,
-} from "viem";
+
 import { PrivyClient } from "@privy-io/server-auth";
-import { erc20ABI } from "../abis";
-import { getAllUserTokenList, getTokenInfo } from "@/libs/debank";
-import { getChainMetadata } from "../../../database/queries";
+import { getBalancesFromDebank } from "@/libs/debank";
 import { NextRequest, NextResponse } from "next/server";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
@@ -28,6 +19,8 @@ export type BalanceErrorResponse = {
   error: string;
 };
 
+//Not being used right now, depending on debank for balances.
+/*
 async function getNativeAssetBalance(address: Address, viemChain: Chain) {
   const client = createPublicClient({
     chain: viemChain,
@@ -58,79 +51,8 @@ async function getERC20Balance(
   const decimals = await contract.read.decimals();
   return formatUnits(balance, decimals);
 }
+*/
 
-export interface DebankTokenInfo {
-  chain: string;
-  balance: string;
-  symbol: string;
-  usdValue: number;
-  price: number;
-  isNativeAsset: boolean;
-}
-
-//This should go somewhere else like in a debank api wrapper.
-//This only gets you the "chain assets" aka the funding assets.
-export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
-  //When we have the database, this should be cached.
-  const chainsMetadata = await getChainMetadata();
-
-  let balances: DebankTokenInfo[] = [] as DebankTokenInfo[];
-  const debankTokenList = await getAllUserTokenList(address);
-  for (const chainMetadata of chainsMetadata) {
-    for (const asset of chainMetadata.assets) {
-      try {
-        const debankTokenInfo = debankTokenList.find(
-          (debankTokenEntry: any) =>
-            debankTokenEntry.chain === chainMetadata.debankName &&
-            debankTokenEntry.symbol === asset.symbol
-        );
-        if (!debankTokenInfo) {
-          throw new Error(
-            `Token ${asset.symbol} in chain ${chainMetadata.name} not found in debank`
-          );
-        }
-        const usdValue = debankTokenInfo.price * debankTokenInfo.amount;
-        balances.push({
-          chain: chainMetadata.name,
-          balance: debankTokenInfo.amount.toString(),
-          symbol: asset.symbol,
-          usdValue: usdValue,
-          price: debankTokenInfo.price,
-          isNativeAsset: asset.type==="NATIVE"
-        });
-      } catch (e: any) {
-        let tokenIdentifier;
-        //NOTE: This is a hack to get the token identifier for native assets, because debank names their native assets with the chain name.
-        if(asset.type!=="NATIVE"){
-          tokenIdentifier = asset.address;
-        }else{
-          tokenIdentifier = chainMetadata.debankName
-        }
-        try{
-        const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
-        balances.push({
-          chain: chainMetadata.name,
-          balance: "0",
-          symbol: asset.symbol,
-          usdValue: 0,
-          price: tokenInfo.price,
-          isNativeAsset: asset.type==="NATIVE"
-        });
-        }catch(e:any){
-          balances.push({
-            chain: chainMetadata.name,
-            balance: "0",
-            symbol: asset.symbol,
-            usdValue: 0,
-            price: 0,
-            isNativeAsset: asset.type==="NATIVE"
-          });
-        }
-      }
-    }
-  }
-  return balances;
-}
 export async function POST(req: NextRequest) {
   // const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");
   try {

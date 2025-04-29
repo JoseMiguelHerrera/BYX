@@ -1,5 +1,8 @@
+import { DebankTokenInfo } from "@/app/api/dataModels";
+import { getChainMetadata } from "@/database/queries";
 import axios from "axios";
 import dotenv from "dotenv";
+import { Address } from "viem";
 dotenv.config();
 
 const DEBANK_API_KEY = process.env.DEBANK_API_KEY;
@@ -141,3 +144,67 @@ export async function getUserTokenList(
   // The API returns an array directly
   return response.data as UserTokenInfo[];
 }
+
+
+//This only gets you the "chain assets" aka the funding assets.
+export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
+    //When we have the database, this should be cached.
+    const chainsMetadata = await getChainMetadata();
+  
+    let balances: DebankTokenInfo[] = [] as DebankTokenInfo[];
+    const debankTokenList = await getAllUserTokenList(address);
+    for (const chainMetadata of chainsMetadata) {
+      for (const asset of chainMetadata.assets) {
+        try {
+          const debankTokenInfo = debankTokenList.find(
+            (debankTokenEntry: any) =>
+              debankTokenEntry.chain === chainMetadata.debankName &&
+              debankTokenEntry.symbol === asset.symbol
+          );
+          if (!debankTokenInfo) {
+            throw new Error(
+              `Token ${asset.symbol} in chain ${chainMetadata.name} not found in debank`
+            );
+          }
+          const usdValue = debankTokenInfo.price * debankTokenInfo.amount;
+          balances.push({
+            chain: chainMetadata.name,
+            balance: debankTokenInfo.amount.toString(),
+            symbol: asset.symbol,
+            usdValue: usdValue,
+            price: debankTokenInfo.price,
+            isNativeAsset: asset.type==="NATIVE"
+          });
+        } catch (e: any) {
+          let tokenIdentifier;
+          //NOTE: This is a hack to get the token identifier for native assets, because debank names their native assets with the chain name.
+          if(asset.type!=="NATIVE"){
+            tokenIdentifier = asset.address;
+          }else{
+            tokenIdentifier = chainMetadata.debankName
+          }
+          try{
+          const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
+          balances.push({
+            chain: chainMetadata.name,
+            balance: "0",
+            symbol: asset.symbol,
+            usdValue: 0,
+            price: tokenInfo.price,
+            isNativeAsset: asset.type==="NATIVE"
+          });
+          }catch(e:any){
+            balances.push({
+              chain: chainMetadata.name,
+              balance: "0",
+              symbol: asset.symbol,
+              usdValue: 0,
+              price: 0,
+              isNativeAsset: asset.type==="NATIVE"
+            });
+          }
+        }
+      }
+    }
+    return balances;
+  }

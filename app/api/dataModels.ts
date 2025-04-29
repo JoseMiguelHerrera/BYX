@@ -101,3 +101,13 @@ export interface UserPosition {
   pnlUsd: number | undefined;
   pnlPercent: number | undefined;
 }
+
+
+export interface DebankTokenInfo {
+  chain: string;
+  balance: string;
+  symbol: string;
+  usdValue: number;
+  price: number;
+  isNativeAsset: boolean;
+}

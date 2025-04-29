@@ -3,8 +3,6 @@ import { TokenInput, TransactionType } from "../dataModels";
 import { createTransaction } from "../engine";
 import { getOpportunityById, writeTransactions } from "../../../database/queries";
 import { NextRequest, NextResponse } from "next/server";
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 
 export type BalanceSuccessResponse = {
   transaction: any;

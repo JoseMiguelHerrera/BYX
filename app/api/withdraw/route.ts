@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { PrivyClient } from "@privy-io/server-auth";
 import { Asset } from "../dataModels";
 import { withdraw } from "../engine/withdraw";

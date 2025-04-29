@@ -1,5 +1,5 @@
 import { getAllUserTokenMovements, getChainById, getOpportunities } from "@/database/queries";
-import { getUserTokenList, UserTokenInfo } from "@/libs/debank";
+import { getUserTokenList } from "@/libs/debank";
 import { UserPosition } from "../dataModels";
 
 export async function getUserPosition(userAddress: string) {
@@ -117,6 +117,7 @@ async function calculatePnl(userAddress: string, userPositions: UserPosition[]):
             if (sumUsdIn > 0) {
                 position.pnlPercent = (pnlUsd / sumUsdIn) * 100;
             } else {
+                console.warn("Skipping PnL calculation for position due to division by zero:", position);
                 // Handle division by zero: If cost basis (sumUsdIn) is 0
                 // Defaulting to 0. Can be adjusted if infinite gain needs specific handling.
                 position.pnlPercent = undefined;
@@ -124,10 +125,12 @@ async function calculatePnl(userAddress: string, userPositions: UserPosition[]):
 
              // Handle potential NaN/Infinity display if needed before rounding
              if (position.pnlPercent && !isFinite(position.pnlPercent)) {
+                console.warn("Skipping PnL calculation for position due to NaN/Infinity:", position);
                  position.pnlPercent = undefined; // Fallback for safety, adjust if specific large value is needed
              }
 
         } else {
+            console.warn("Skipping PnL calculation for position due to no movements:", position);
             // If there are no historical movements found for this asset address
              position.pnlUsd = undefined; // PnL requires historical data
              position.pnlPercent = undefined;

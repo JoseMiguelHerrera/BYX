@@ -4,7 +4,7 @@ import DivestFromOpportunityModal from "./DivestFromOpportunityModal";
 import { getAccessToken, WalletWithMetadata } from "@privy-io/react-auth";
 import { useDelegatedActions, usePrivy } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
-import { OpportunityData } from "../api/dataModels";
+import { OpportunityData } from "@/app/api/dataModels";
 
 export interface Asset {
   name: string;

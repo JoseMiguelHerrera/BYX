@@ -1,5 +1,4 @@
-import { OpportunityData, TokenInput } from "../dataModels";
-import { DebankTokenInfo } from "../balances/route";
+import { OpportunityData, TokenInput,DebankTokenInfo } from "../dataModels";
 import { getAssetBySymbolAndChain, getChainById } from "@/database/queries";
 import { getViemChainByInternalId, InternalChainId } from "./chainPicker";
 import { getTokenInfo } from "@/libs/debank";

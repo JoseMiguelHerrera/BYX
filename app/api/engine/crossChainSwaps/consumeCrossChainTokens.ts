@@ -3,10 +3,9 @@ import ServerSideTransactions from "../serverSideTransactions";
 import { calculateInputTokenCapacity, gasTokenSafetyCheck, getGasBufferedDebankBalances, getInputTokenBufferedDebankBalances, getMultiTokenConsumption, InputTokenCapacity, prioritizeDebankBalances, TokenConsumption } from "../tokenConsumptionEngine";
 import { PrivyRelayLinkAdaptor } from "./privyRelayLinkAdaptor";
 import { getViemChainByInternalId } from "../chainPicker";
-import { OpportunityData, TokenInput } from "../../dataModels";
-import { getTokenInfo } from "@/libs/debank";
+import { OpportunityData, TokenInput,DebankTokenInfo } from "../../dataModels";
+import { getTokenInfo,getBalancesFromDebank } from "@/libs/debank";
 import { getChainById } from "@/database/queries";
-import { DebankTokenInfo, getBalancesFromDebank } from "../../balances/route";
 
 async function consumeCrossChainTokensToTargetChain(serverSideTransactions: ServerSideTransactions, userAddress: string, crossChainTokenConsumptions: TokenConsumption[], toChainId: string, toCurrency: string, toCurrencyPrice: number, toCurrencyDecimals: number) {
   const toChain = getViemChainByInternalId(toChainId);

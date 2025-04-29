@@ -5,13 +5,9 @@ import {
     createPublicClient,
     http,
     encodeFunctionData,
-    formatEther,
-    parseEther,
     parseUnits,
-    decodeFunctionResult,
-    PublicClient,
 } from "viem";
-import { TokenInput, OpportunityData, RedeemStatus } from "../../dataModels";
+import { TokenInput, OpportunityData } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
 
@@ -151,9 +147,9 @@ export async function createInfraredWithdrawalTransaction(
 export async function createInfraredCollectRewardsTransaction(
     opportunity: OpportunityData,
     userAddress: string,
-    tokenInputs: TokenInput[],
+    _tokenInputs: TokenInput[],
     nonceOffSet: number = 0,
-    extraData: any[] = [],
+    _extraData: any[] = [],
 ) {
     console.log("createInfraredWithdrawalTransaction")
     const viemChain = getViemChainByInternalId(opportunity.chain);

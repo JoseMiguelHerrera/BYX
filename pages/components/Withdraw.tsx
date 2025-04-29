@@ -1,18 +1,9 @@
 import { useState, useEffect } from "react";
-import { getViemChain } from "../api/engine/chainPicker";
 import { toast } from "react-toastify";
-import { Asset, ChainMetadata } from "../api/dataModels";
+import { Asset, ChainMetadata } from "@/app/api/dataModels";
 
-function generateWithdrawalObject(chain: ChainMetadata, asset: Asset, amount: string, recipientAddress: string) {
-  return {
-    chain: chain,
-    asset: asset,
-    amount: amount,
-    recipientAddress: recipientAddress,
-  };
-}
 
-export default function Funding({
+export default function Withdraw({
   smartWalletAddress,
 }: {
   smartWalletAddress: string;

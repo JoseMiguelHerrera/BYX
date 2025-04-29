@@ -5,7 +5,7 @@ import { eq, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import {Transaction} from "@/app/api/dataModels"
 import dotenv from "dotenv";
-import { transactions, transactionAssetMovements, opportunityAssets } from "./schema";
+import { opportunityAssets } from "./schema";
 dotenv.config();
 
 let db: PostgresJsDatabase<typeof schema> | null = null;
@@ -17,6 +17,7 @@ export async function getDB(): Promise<
     return db;
   }
   let connection: postgres.Sql<{}> | null = null;
+  console.log(process.env.NODE_ENV)
   if (process.env.NODE_ENV === "development") {
     //local defaults for a local db instance
     console.log("connected to local database");
