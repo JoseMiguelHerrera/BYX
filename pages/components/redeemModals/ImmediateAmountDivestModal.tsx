@@ -7,7 +7,6 @@ interface ImmediateAmountDivestModalProps {
   isOpen: boolean;
   onClose: () => void;
   opportunity: OpportunityData | null;
-  userAddress: string | null;
   onDivest: (amounts: Record<string, string>) => void;
   onCollectRewards: (divestmentId: string) => void | null;
 }
@@ -16,7 +15,6 @@ export default function ImmediateAmountDivestModal({
   isOpen,
   onClose,
   opportunity,
-  userAddress,
   onDivest,
   onCollectRewards
 }: ImmediateAmountDivestModalProps) {

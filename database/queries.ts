@@ -1,11 +1,11 @@
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { ChainMetadata, Asset, OpportunityData, OpportunityContract } from "@/app/api/dataModels";
+import { ChainMetadata, Asset, OpportunityData, OpportunityContract, TransactionType } from "@/app/api/dataModels";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import {Transaction} from "@/app/api/dataModels"
 import dotenv from "dotenv";
-import { transactions, transactionAssets, opportunityAssets } from "./schema";
+import { opportunityAssets } from "./schema";
 dotenv.config();
 
 let db: PostgresJsDatabase<typeof schema> | null = null;
@@ -17,6 +17,7 @@ export async function getDB(): Promise<
     return db;
   }
   let connection: postgres.Sql<{}> | null = null;
+  console.log(process.env.NODE_ENV)
   if (process.env.NODE_ENV === "development") {
     //local defaults for a local db instance
     console.log("connected to local database");
@@ -360,25 +361,29 @@ export async function writeTransactions(transactions: Transaction[]) {
         transactionId: tx.id,
         opportunityAssetId:opportunityAssetRows.find(row => 
           row.opportunityId === tx.opportunityId && 
-          row.assetId === asset.asset.id && 
+          row.assetId === asset.assetId && 
           row.role === 'input'
         )?.id as string,
-        amount: asset.amount,
+        amountToken: asset.tokenAmount,
+        amountUSDAtTransaction: asset.usdAmount,
+        direction: tx.type==TransactionType.Invest ? "out" as const : "in" as const,//Later might have to include other types of transactions
       })),
       ...tx.outputAssets.map(asset => ({
         transactionId: tx.id,
         opportunityAssetId: opportunityAssetRows.find(row => 
           row.opportunityId === tx.opportunityId && 
-          row.assetId === asset.asset.id && 
+          row.assetId === asset.assetId && 
           row.role === 'output'
         )?.id as string,
-        amount: asset.amount,
+        amountToken: asset.tokenAmount,
+        amountUSDAtTransaction: asset.usdAmount,
+        direction: tx.type==TransactionType.Invest ? "in" as const : "out" as const,
       }))
     ]);
 
     // Insert all transaction assets
     if (assetValues.length > 0) {
-      await tx.insert(schema.transactionAssets).values(assetValues);
+      await tx.insert(schema.transactionAssetMovements).values(assetValues);
     }
   });
 }
@@ -409,5 +414,42 @@ export async function getAssetBySymbolAndChain(symbol: string, chainId: string):
   return result[0]
 }
 
+export async function getAllUserTokenMovements(userAddress: string) {
+  const db = await getDB();
 
+  const movements = await db
+    .select({
+      transactionId: schema.transactions.id,
+      transactionType: schema.transactions.type,
+      transactionHash: schema.transactions.transactionHash,
+      createdAt: schema.transactions.createdAt,
+      opportunityId: schema.transactions.opportunityId,
+      movementAmountToken: schema.transactionAssetMovements.amountToken,
+      movementAmountUSD: schema.transactionAssetMovements.amountUSDAtTransaction,
+      movementDirection: schema.transactionAssetMovements.direction,
+      assetSymbol: schema.assets.symbol,
+      assetDecimals: schema.assets.decimals,
+      assetAddress: schema.assets.address, // Keep asset address for context
+      assetId: schema.assets.id, // Keep asset id for context
+    })
+    .from(schema.transactionAssetMovements)
+    .innerJoin(
+      schema.transactions,
+      eq(schema.transactionAssetMovements.transactionId, schema.transactions.id)
+    )
+    .innerJoin(
+      schema.opportunityAssets,
+      eq(schema.transactionAssetMovements.opportunityAssetId, schema.opportunityAssets.id)
+    )
+    .innerJoin(
+      schema.assets,
+      eq(schema.opportunityAssets.assetId, schema.assets.id)
+    )
+    .where(
+      sql`${schema.transactions.userAddress} = ${userAddress}` // Only filter by user address
+    )
+    .orderBy(schema.transactions.createdAt); // Optional: order by time
+
+  return movements;
+}
 

@@ -1,4 +1,4 @@
-import { lidoSubmitABI, lidoRequestWithdrawalABI, erc20ABI } from "../../abis";
+import { lidoSubmitABI, lidoRequestWithdrawalABI } from "../../abis";
 import { getViemChainByInternalId } from "../chainPicker";
 import {
   Address,

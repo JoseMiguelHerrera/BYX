@@ -3,8 +3,6 @@ import { TokenInput, TransactionType } from "../dataModels";
 import { createTransaction } from "../engine";
 import { getOpportunityById, writeTransactions } from "../../../database/queries";
 import { NextRequest, NextResponse } from "next/server";
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 
 export type BalanceSuccessResponse = {
   transaction: any;
@@ -61,7 +59,7 @@ export async function POST(req: NextRequest) {
     const opportunity = await getOpportunityById(opportunityId);
     if (!opportunity)
       return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
-    const txHash = await createTransaction(
+    const createTransactionResponse = await createTransaction(
       opportunity,
       smartWalletAddress,
       tokenInputs,
@@ -69,18 +67,19 @@ export async function POST(req: NextRequest) {
       extraData,
       privyClient
     );
+    const lastTxHash=createTransactionResponse.txHashes[createTransactionResponse.txHashes.length-1]as string;
     await writeTransactions([{
       id: crypto.randomUUID(),
       userId: userID,
       userAddress: smartWalletAddress,
       type: type,
       opportunityId: opportunityId,
-      inputAssets: [],//TODO: we need to get the input assets from createTransaction
-      outputAssets: [],//TODO: we need to get the output assets from createTransaction
+      inputAssets: createTransactionResponse.inputTxAssetAmountInfo,
+      outputAssets: createTransactionResponse.outputTxAssetAmountInfo,
       createdAt: Date.now(),
-      transactionHash: txHash[txHash.length-1]as string,//rule of thumb: the last transaction is the one that creates the transaction
+      transactionHash: lastTxHash,
     }])
-    return NextResponse.json({ transaction: txHash[txHash.length-1] }, { status: 200 });
+    return NextResponse.json({ transaction: lastTxHash }, { status: 200 });
   } catch (e: any) {
     console.log(e);
     return NextResponse.json({ error: e.message }, { status: 500 });

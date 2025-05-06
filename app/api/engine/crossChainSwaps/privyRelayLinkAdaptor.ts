@@ -1,6 +1,6 @@
 import { EthereumSignMessageInputType, EthereumSignMessageResponseType, EthereumSignTypedDataInputType, EthereumSignTypedDataResponseType, PrivyClient } from "@privy-io/server-auth";
-import { ChainVM, AdaptedWallet, TransactionStepItem, Execute,adaptViemWallet, SignatureStepItem, getClient } from "@reservoir0x/relay-sdk";
-import { Address, createPublicClient, http, Quantity,hexToBytes,Hex, toHex } from "viem";
+import { ChainVM, AdaptedWallet, TransactionStepItem, Execute, SignatureStepItem, getClient } from "@reservoir0x/relay-sdk";
+import { Address, createPublicClient, http,hexToBytes,Hex } from "viem";
 import { getViemChainByChainNumber } from "../chainPicker";
 import { arbitrum, mainnet,berachain,base } from "viem/chains";
 import { MAINNET_RELAY_API,createClient, convertViemChainToRelayChain } from '@reservoir0x/relay-sdk'
@@ -34,7 +34,7 @@ export class PrivyRelayLinkAdaptor {
             switchChain: async (chainId: number) => {
                 this.currentChainID = chainId;
             },
-            handleSendTransactionStep: async (chainId: number, item: TransactionStepItem, step: Execute['steps'][0]) => {
+            handleSendTransactionStep: async (_chainId: number, item: TransactionStepItem, _step: Execute['steps'][0]) => {
                 try {
                     const response= await this.client.walletApi.ethereum.sendTransaction({
                         address: this.currentUserAddress,
@@ -62,7 +62,7 @@ export class PrivyRelayLinkAdaptor {
             },
             handleConfirmTransactionStep: async (
                 txHash,
-                chainId,
+                _chainId,
                 onReplaced,
                 onCancelled
               ) => {
@@ -95,7 +95,7 @@ export class PrivyRelayLinkAdaptor {
               }
 
               },
-              handleSignMessageStep: async (item: SignatureStepItem,step: Execute['steps'][0]) => {
+              handleSignMessageStep: async (item: SignatureStepItem,_step: Execute['steps'][0]) => {
                 //await this.client.walletApi.ethereum.signMessage
                 //await this.client.walletApi.ethereum.signTypedData
                 const signData = item.data?.sign

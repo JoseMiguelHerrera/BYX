@@ -17,9 +17,10 @@ export interface AssetBalance {
   amount: string;
 }
 
-export interface AssetAmount {
-  asset: Asset;
-  amount: string;
+export interface TxAssetAmountInfo {
+  assetId: string;
+  tokenAmount: string;
+  usdAmount: string;
 }
 
 export interface Asset {
@@ -84,9 +85,29 @@ export interface Transaction {
   userId: string;
   userAddress: string;
   type: TransactionType;
-  inputAssets: AssetAmount[];
-  outputAssets: AssetAmount[];
+  inputAssets: TxAssetAmountInfo[];
+  outputAssets: TxAssetAmountInfo[];
   createdAt: number;
   opportunityId: string;
   transactionHash: string;
+}
+
+export interface UserPosition {
+  name: string;
+  chain: string;
+  address: string;
+  amount: number;
+  usdValue: number;
+  pnlUsd: number | undefined;
+  pnlPercent: number | undefined;
+}
+
+
+export interface DebankTokenInfo {
+  chain: string;
+  balance: string;
+  symbol: string;
+  usdValue: number;
+  price: number;
+  isNativeAsset: boolean;
 }

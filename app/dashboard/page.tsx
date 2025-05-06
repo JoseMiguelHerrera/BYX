@@ -7,6 +7,8 @@ import Funding from "@/pages/components/Funding";
 import Balances from "@/pages/components/Balances";
 import Opportunities from "@/pages/components/Opportunities";
 import Withdraw from "@/pages/components/Withdraw";
+
+import Positions from "@/pages/components/Positions";
 import useWallet from "../hooks/useWallet";
 
 export default function DashboardPage() {
@@ -117,6 +119,16 @@ export default function DashboardPage() {
               >
                 Opportunities
               </button>
+              <button
+                onClick={() => setActiveView("positions")}
+                className={`text-sm ${
+                  activeView === "positions"
+                    ? "bg-violet-700"
+                    : "bg-violet-600"
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
+              >
+                Positions
+              </button>
             </div>
           </div>
 
@@ -137,6 +149,10 @@ export default function DashboardPage() {
                     <Withdraw
                       smartWalletAddress={embeddedWallet?.address || ""}
                     />
+                  ) : activeView === "positions" ? (
+                    <Positions
+                      smartWalletAddress={embeddedWallet?.address || ""}
+                    />
                   ) : (
                     <Balances
                       smartWalletAddress={embeddedWallet?.address || ""}
@@ -144,7 +160,11 @@ export default function DashboardPage() {
                   )}
                 </div>
               </>
-            ) : null}
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <p>Please log in to view the dashboard.</p>
+              </div>
+            )}
           </main>
         </div>
       </div>

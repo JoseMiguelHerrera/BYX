@@ -1,7 +1,7 @@
-import { OpportunityData } from "@/app/api/dataModels";
 import ImmediateNFTDivestModal from "./redeemModals/immediateNFTDivestModal";
 import RequestAmountDivestModal from "./redeemModals/requestAmountDivestModal";
 import ImmediateAmountDivestModal from "./redeemModals/ImmediateAmountDivestModal";
+import { OpportunityData } from "@/app/api/dataModels";
 interface DivestFromOpportunityModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -85,7 +85,6 @@ export default function DivestFromOpportunityModal({
           isOpen={isOpen}
           onClose={onClose}
           opportunity={opportunity}
-          userAddress={userAddress}
           onDivest={onDivest as (amounts: Record<string, string>) => void}
           onCollectRewards={onCollectRewards as (positionId: string) => void}
         />

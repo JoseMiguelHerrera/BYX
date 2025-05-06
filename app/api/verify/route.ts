@@ -1,5 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { PrivyClient, AuthTokenClaims } from "@privy-io/server-auth";
 import { NextRequest, NextResponse } from "next/server";
 

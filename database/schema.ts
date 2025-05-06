@@ -90,17 +90,18 @@ export const transactions = schema.table(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
     transactionHash: text("transaction_hash").notNull(),
-    
   }
 );
 
-export const transactionAssets = schema.table(
-  "byx_transaction_assets",
+export const transactionAssetMovements = schema.table(
+  "byx_transaction_asset_movements",
   {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     transactionId: text("transaction_id").notNull().references(() => transactions.id),
+    direction: text("direction", { enum: ["in", "out"] }).notNull(),
     opportunityAssetId: text("opportunity_asset_id").notNull().references(() => opportunityAssets.id),
-    amount: text("amount").notNull(),
+    amountToken: text("amount_token").notNull(),
+    amountUSDAtTransaction: text("amount_usd_at_transaction").notNull(),
   },
   (table) => [
     {
