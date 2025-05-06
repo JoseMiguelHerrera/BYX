@@ -19,12 +19,12 @@ export async function GET(req: NextRequest) {
   const cookieAuthToken = req.cookies.get("privy-token")?.value;
 
   const authToken = cookieAuthToken || headerAuthToken;
-  if (!authToken) return NextResponse.json({ error: "Missing auth token" }, { status: 401 });
+  // if (!authToken) { return NextResponse.json({ error: "Missing auth token" }, { status: 401 }); }
 
   try {
-    await client.verifyAuthToken(authToken);
+    // await client.verifyAuthToken(authToken);
     const opportunities = await getOpportunities();
-    return NextResponse.json({ opportunities }, { status: 200 });
+    return NextResponse.json({ data: opportunities }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

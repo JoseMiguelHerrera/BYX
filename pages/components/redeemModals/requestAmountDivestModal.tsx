@@ -25,7 +25,6 @@ export default function RequestAmountDivestModal({
   const [activeTab, setActiveTab] = useState<"request" | "complete">("request");
   const [divestInfo, setDivestInfo] = useState<RedeemStatus[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  if (!opportunity) return null;
 
   const getDivestInfo = async () => {
     if (!opportunity || !userAddress) {
@@ -71,6 +70,8 @@ export default function RequestAmountDivestModal({
     }
   }, [opportunity, userAddress]);
 
+  if (!opportunity) return null;
+  
 
   return (
     <Transition appear show={isOpen} as={Fragment}>

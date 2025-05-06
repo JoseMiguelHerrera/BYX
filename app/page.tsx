@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { PrivyClient } from "@privy-io/server-auth";
 import { redirect } from "next/navigation";
-import LoginClient from "@/components/containers/Login";
+import LoginClient from "@/containers/Login";
 // 👇 Move this part to the top-level of the server component
 export default async function LoginPage() {
   const cookieStore = await cookies();

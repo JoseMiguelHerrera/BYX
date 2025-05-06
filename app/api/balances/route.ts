@@ -19,8 +19,8 @@ export type BalanceErrorResponse = {
   error: string;
 };
 
-//Not being used right now, depending on debank for balances.
 /*
+Not being used right now, depending on debank for balances.
 async function getNativeAssetBalance(address: Address, viemChain: Chain) {
   const client = createPublicClient({
     chain: viemChain,
@@ -52,6 +52,7 @@ async function getERC20Balance(
   return formatUnits(balance, decimals);
 }
 */
+
 
 export async function POST(req: NextRequest) {
   // const headerAuthToken = req.headers.authorization?.replace(/^Bearer /, "");

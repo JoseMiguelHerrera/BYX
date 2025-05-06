@@ -53,7 +53,8 @@ export default function Opportunities({
         toast.error(`Failed to fetch defi opportunities`);
       }
       const data = await response.json();
-      setOpportunities(data.opportunities);
+      console.log(data.data);
+      setOpportunities(data.data);
     } catch (error) {
       console.error("Error fetching opportunities:", error);
       setOpportunities([]);
@@ -61,6 +62,7 @@ export default function Opportunities({
       setIsLoading(false);
     }
   };
+
 
   const delegate = async () => {
     if (!isAlreadyDelegated) {
@@ -427,7 +429,7 @@ export default function Opportunities({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {opportunities.map((opportunity, index) => (
+              {(opportunities || []).map((opportunity, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {opportunity.name}

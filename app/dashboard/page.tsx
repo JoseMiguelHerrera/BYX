@@ -7,7 +7,9 @@ import Funding from "@/pages/components/Funding";
 import Balances from "@/pages/components/Balances";
 import Opportunities from "@/pages/components/Opportunities";
 import Withdraw from "@/pages/components/Withdraw";
+
 import Positions from "@/pages/components/Positions";
+import useWallet from "../hooks/useWallet";
 
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState("dashboard");
@@ -19,11 +21,7 @@ export default function DashboardPage() {
     }
   }, [ready, authenticated, router]);
 
-  const { wallets } = useWallets();
-
-  const embeddedWallet = wallets.find(
-    (wallet) => wallet.walletClientType === "privy",
-  );
+  const { embeddedWallet } = useWallet();
 
   return (
     <>

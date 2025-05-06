@@ -25,7 +25,6 @@ export default function ImmediateNFTDivestModal({
   const [activeTab, setActiveTab] = useState<"complete">("complete");
   const [divestInfo, setDivestInfo] = useState<RedeemStatus[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  if (!opportunity) return null;
 
   const getDivestInfo = async () => {
     if (!opportunity || !userAddress) {
@@ -70,6 +69,9 @@ export default function ImmediateNFTDivestModal({
       getDivestInfo();
     }
   }, [opportunity, userAddress]);
+
+  
+  if (!opportunity) return null;
 
 
   return (
