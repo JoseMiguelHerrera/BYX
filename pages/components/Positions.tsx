@@ -175,7 +175,7 @@ export default function Positions({ smartWalletAddress }: PositionsProps) {
           {/* Added Information Box */}
           <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700 space-y-2">
             <p>
-              <strong className="font-medium">Note:</strong> Currently we don't show Uniswap V3 positions here. Please visit the Uniswap position page to see position value and rewards.
+              <strong className="font-medium">Note:</strong> Currently we don&apos;t show Uniswap V3 positions here. Please visit the Uniswap position page to see position value and rewards.
             </p>
             <p>
               PnL values represent the <em className="font-medium">lifetime PnL</em> for your historical investment in a particular opportunity.
