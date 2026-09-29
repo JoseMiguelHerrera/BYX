@@ -1,9 +1,10 @@
 {
   "private": true,
   "engines": {
-    "npm": ">=9.0.0",
+    "yarn": ">=1.22.0",
     "node": ">=22.0.0"
   },
+  "packageManager": "yarn@1.22.22",
   "overrides": {
     "valtio": "^2.1.4"
   },
