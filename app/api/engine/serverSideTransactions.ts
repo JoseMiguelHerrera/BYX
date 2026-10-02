@@ -1,8 +1,9 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import dotenv from "dotenv";
-import { Address, http } from "viem";
+import { Address } from "viem";
 import { createPublicClient } from "viem";
-import { getViemChainByInternalId, InternalChainId } from "./chainPicker";
+import { getViemChainByInternalId, InternalChainId, httpFor } from "./chainPicker";
+import { resolvePrivyWalletId } from "./privyWalletId";
 dotenv.config();
 
 export default class ServerSideTransactions {
@@ -25,7 +26,7 @@ export default class ServerSideTransactions {
     const viemChain = getViemChainByInternalId(chain);
     const client = createPublicClient({
       chain: viemChain,
-      transport: http(),
+      transport: httpFor(viemChain),
     });
 
     try {
@@ -59,12 +60,13 @@ export default class ServerSideTransactions {
     await this.simulateTransactions(chain, userAddress, transactions);
     let hashes: string[] = [];
 
+    const walletId = await resolvePrivyWalletId(userAddress);
+
     for (const tx of transactions) {
       console.log("Attempting to send transaction", tx);
       try {
         const { hash } = await this.client.walletApi.ethereum.sendTransaction({
-          address: userAddress,
-          chainType: "ethereum",
+          walletId,
           caip2: `eip155:${tx.transaction.chainId}`,
           transaction: tx.transaction,
         });

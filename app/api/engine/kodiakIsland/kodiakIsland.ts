@@ -1,14 +1,6 @@
 import { KodiakIslandRouterABI, KodiakIslandABI } from "../../abis";
-import { getViemChainByInternalId } from "../chainPicker";
-import {
-    Address,
-    createPublicClient,
-    http,
-    encodeFunctionData,
-    parseUnits,
-    decodeFunctionResult,
-    PublicClient,
-} from "viem";
+import { getViemChainByInternalId, httpFor } from "../chainPicker";
+import { Address, createPublicClient, encodeFunctionData, parseUnits, decodeFunctionResult, PublicClient } from "viem";
 import { TokenInput, OpportunityData } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
@@ -39,7 +31,7 @@ export async function createKodiakIslandMintTransaction(
     const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -118,7 +110,7 @@ export async function createKodiakIslandRedeemTransaction(
     const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -287,7 +279,7 @@ export async function createUniswapMintLPTransaction(
     const viemChain = getViemChain(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const range = extraData[0];
     const nonce =
@@ -425,7 +417,7 @@ export async function getUniswapLPInfo(opportunity: OpportunityData, userAddress
     const viemChain = getViemChain(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(),
+        transport: httpFor(viemChain),
     });
 
 
@@ -535,7 +527,7 @@ export async function getUniswapLPPositions(opportunity: OpportunityData, userAd
     const viemChain = getViemChain(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const investContractAddress = opportunity.contracts.find(
         (contract) => contract.type === "invest",
@@ -672,7 +664,7 @@ export async function createCollectRewardsTransaction(
     const viemChain = getViemChain(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
 
     let nonce =
@@ -723,7 +715,7 @@ export async function createWithdrawTransaction(
     const viemChain = getViemChain(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     let nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) 

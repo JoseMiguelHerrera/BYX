@@ -1,9 +1,10 @@
 import { EthereumSignMessageInputType, EthereumSignMessageResponseType, EthereumSignTypedDataInputType, EthereumSignTypedDataResponseType, PrivyClient } from "@privy-io/server-auth";
 import { ChainVM, AdaptedWallet, TransactionStepItem, Execute, SignatureStepItem, getClient } from "@reservoir0x/relay-sdk";
-import { Address, createPublicClient, http,hexToBytes,Hex } from "viem";
-import { getViemChainByChainNumber } from "../chainPicker";
+import { Address, createPublicClient, hexToBytes, Hex } from "viem";
+import { getViemChainByChainNumber, httpFor } from "../chainPicker";
 import { arbitrum, mainnet,berachain,base } from "viem/chains";
 import { MAINNET_RELAY_API,createClient, convertViemChainToRelayChain } from '@reservoir0x/relay-sdk'
+import { resolvePrivyWalletId } from "../privyWalletId";
 
 //Only supports evm chains for now
 export class PrivyRelayLinkAdaptor {
@@ -11,6 +12,7 @@ export class PrivyRelayLinkAdaptor {
     private chainVM: ChainVM;
     private currentChainID: number;
     private currentUserAddress: string;
+    private walletIdPromise?: Promise<string>;
     constructor(_client: PrivyClient, currentChainID: number, currentUserAddress: string) {
         this.client = _client;
         this.chainVM = "evm";
@@ -25,6 +27,17 @@ export class PrivyRelayLinkAdaptor {
 
     }
 
+    /**
+     * Server-side RPC must address the wallet by ID: `address` + `chainType` routes
+     * to the legacy delegated-actions endpoint, which is disabled on TEE apps.
+     */
+    private getWalletId(): Promise<string> {
+        if (!this.walletIdPromise) {
+            this.walletIdPromise = resolvePrivyWalletId(this.currentUserAddress);
+        }
+        return this.walletIdPromise;
+    }
+
     async getPrivyAdaptedWallet(): Promise<AdaptedWallet> {
         return {
 
@@ -37,8 +50,7 @@ export class PrivyRelayLinkAdaptor {
             handleSendTransactionStep: async (_chainId: number, item: TransactionStepItem, _step: Execute['steps'][0]) => {
                 try {
                     const response= await this.client.walletApi.ethereum.sendTransaction({
-                        address: this.currentUserAddress,
-                        chainType: "ethereum",
+                        walletId: await this.getWalletId(),
                         caip2: `eip155:${this.currentChainID}`,
                         transaction: {
                             data: item.data.data,
@@ -71,7 +83,7 @@ export class PrivyRelayLinkAdaptor {
                 const viemChain = getViemChainByChainNumber(this.currentChainID);
                 const viemClient = createPublicClient({
                     chain: viemChain,
-                    transport: http(), // Use default RPC
+                    transport: httpFor(viemChain),
                 });
                 // Wait for more block confirmations
                 const desiredConfirmations = 1; // Adjust this number as needed (e.g., 2, 3, or more)
@@ -109,8 +121,7 @@ export class PrivyRelayLinkAdaptor {
                       const bytes = hexToBytes(signData.message as Hex);
                         const messageInput:EthereumSignMessageInputType={
                             message: bytes,
-                            address: this.currentUserAddress,
-                            chainType: "ethereum",
+                            walletId: await this.getWalletId(),
                             idempotencyKey: `sig-${signData.signatureKind}-${Date.now()}-${Buffer.from(signData.message.slice(0, 20)).toString('base64').replace(/[+/=]/g, '')}`// Semi random idempotency key
                         }
                       const sigResponse:EthereumSignMessageResponseType =await this.client.walletApi.ethereum.signMessage(messageInput)
@@ -118,8 +129,7 @@ export class PrivyRelayLinkAdaptor {
                     } else {
                         const messageInput:EthereumSignMessageInputType={
                             message: signData.message,
-                            address: this.currentUserAddress,
-                            chainType: "ethereum",
+                            walletId: await this.getWalletId(),
                             idempotencyKey: `sig-${signData.signatureKind}-${Date.now()}-${Buffer.from(signData.message.slice(0, 20)).toString('base64').replace(/[+/=]/g, '')}`// Semi random idempotency key
                         }
                         const sigResponse:EthereumSignMessageResponseType = await this.client.walletApi.ethereum.signMessage(messageInput)
@@ -136,8 +146,7 @@ export class PrivyRelayLinkAdaptor {
                             message: signData.value, //Record<string, any>
                             primaryType: signData.primaryType //string
                         },
-                        address: this.currentUserAddress,
-                        chainType: "ethereum"
+                        walletId: await this.getWalletId()
                     }
 
 

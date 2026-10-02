@@ -1,0 +1,211 @@
+{
+  "data": {
+    "address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+    "updated_at": "2026-09-30T00:30:24.869286126Z",
+    "quote_currency": "USD",
+    "chain_id": 1,
+    "chain_name": "eth-mainnet",
+    "chain_tip_height": 26086716,
+    "chain_tip_signed_at": "2026-09-30T00:29:47Z",
+    "items": [
+      {
+        "contract_decimals": 18,
+        "contract_name": "Ether",
+        "contract_ticker_symbol": "ETH",
+        "contract_address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "supports_erc": null,
+        "contract_display_name": "Ether",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-09-30T00:19:23Z",
+        "block_height": 26086665,
+        "type": "cryptocurrency",
+        "is_spam": false,
+        "balance": "5715987139328012679",
+        "balance_24h": "5721681785331996621",
+        "quote_rate": null,
+        "quote_rate_24h": 2690.657,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": 15395.083,
+        "pretty_quote_24h": "$15,395.08",
+        "is_native_token": true
+      },
+      {
+        "contract_decimals": 6,
+        "contract_name": "Tether USD",
+        "contract_ticker_symbol": "USDT",
+        "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "Tether USD",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-09-19T17:22:23Z",
+        "block_height": 26013023,
+        "type": "stablecoin",
+        "is_spam": false,
+        "balance": "291368219",
+        "balance_24h": "291368219",
+        "quote_rate": null,
+        "quote_rate_24h": 0.9979396,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": 290.76788,
+        "pretty_quote_24h": "$290.77",
+        "is_native_token": false
+      },
+      {
+        "contract_decimals": 18,
+        "contract_name": "Dai Stablecoin v1.0",
+        "contract_ticker_symbol": "DAI",
+        "contract_address": "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "Dai Stablecoin v1.0",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2020-01-04T19:55:07Z",
+        "block_height": 9215923,
+        "type": "stablecoin",
+        "is_spam": false,
+        "balance": "798800000000000000",
+        "balance_24h": "798800000000000000",
+        "quote_rate": null,
+        "quote_rate_24h": 14.108291,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": 11.269703,
+        "pretty_quote_24h": "$11.27",
+        "is_native_token": false
+      },
+      {
+        "contract_decimals": 18,
+        "contract_name": "PepeFork",
+        "contract_ticker_symbol": "PEPEFORK",
+        "contract_address": "0xd7bc5b39b8eef3a2a875abbca41da114f3899bb9",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "PepeFork",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0xd7bc5b39b8eef3a2a875abbca41da114f3899bb9.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-04-24T14:38:11Z",
+        "block_height": 24950473,
+        "type": "cryptocurrency",
+        "is_spam": false,
+        "balance": "42069000000000000000000000000000",
+        "balance_24h": "42069000000000000000000000000000",
+        "quote_rate": null,
+        "quote_rate_24h": null,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": null,
+        "pretty_quote_24h": null,
+        "is_native_token": false
+      },
+      {
+        "contract_decimals": 18,
+        "contract_name": "Bitcoin United",
+        "contract_ticker_symbol": "BTCU",
+        "contract_address": "0x8932dba62cfe0dceec51d03bbf73b2c83ad9f5d1",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "Bitcoin United",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0x8932dba62cfe0dceec51d03bbf73b2c83ad9f5d1.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-06-29T11:24:35Z",
+        "block_height": 25423005,
+        "type": "cryptocurrency",
+        "is_spam": false,
+        "balance": "101000000000000000000",
+        "balance_24h": "101000000000000000000",
+        "quote_rate": null,
+        "quote_rate_24h": null,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": null,
+        "pretty_quote_24h": null,
+        "is_native_token": false
+      },
+      {
+        "contract_decimals": 18,
+        "contract_name": "SAT Token",
+        "contract_ticker_symbol": "SAT",
+        "contract_address": "0xfa75a5038381698d507518f01c121bc78af9e95b",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "SAT Token",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0xfa75a5038381698d507518f01c121bc78af9e95b.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-05-09T09:32:59Z",
+        "block_height": 25056650,
+        "type": "cryptocurrency",
+        "is_spam": false,
+        "balance": "10000000000000000000000",
+        "balance_24h": "10000000000000000000000",
+        "quote_rate": null,
+        "quote_rate_24h": null,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": null,
+        "pretty_quote_24h": null,
+        "is_native_token": false
+      },
+      {
+        "contract_decimals": 18,
+        "contract_name": "Chudjak",
+        "contract_ticker_symbol": "CHUD",
+        "contract_address": "0xdb4e144234b65eb147acf1694cbdccf3381af438",
+        "supports_erc": [
+          "erc20"
+        ],
+        "contract_display_name": "Chudjak",
+        "logo_urls": {
+          "token_logo_url": "https://logos.covalenthq.com/tokens/1/0xdb4e144234b65eb147acf1694cbdccf3381af438.png",
+          "protocol_logo_url": null,
+          "chain_logo_url": "https://www.datocms-assets.com/86369/1669653891-eth.svg?fm=png"
+        },
+        "last_transferred_at": "2026-04-30T17:43:23Z",
+        "block_height": 24994492,
+        "type": "dust",
+        "is_spam": false,
+        "balance": "0",
+        "balance_24h": "0",
+        "quote_rate": null,
+        "quote_rate_24h": 0.000014680817,
+        "quote": null,
+        "pretty_quote": null,
+        "quote_24h": 0,
+        "pretty_quote_24h": "$0.00",
+        "is_native_token": false
+      }
+    ],
+    "pagination": null
+  },
+  "error": false,
+  "error_message": null,
+  "error_code": null
+}

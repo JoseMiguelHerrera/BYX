@@ -16,7 +16,6 @@ export const assets = schema.table(
     priceUSD: text("price_usd"),
     decimals: integer("decimals").notNull(),
     tokenType: text("token_type", { enum: ["ERC20", "ERC721", "ERC1155", "NATIVE"] }).notNull(),
-    supportedByDebank: boolean("supported_by_debank"),
   }
 );
 
@@ -26,6 +25,15 @@ export const chainMetadata = schema.table(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     debankName: text("debank_name").notNull(),
+    // Nullable on purpose: debankName is notNull, but GoldRush cannot serve every
+    // chain, so a notNull goldrushName would make those chains unrepresentable.
+    goldrushName: text("goldrush_name"),
+    supportedByGoldrush: boolean("supported_by_goldrush"),
+    // DefiLlama's own chain slug, which is NOT GoldRush's (it says `ethereum`
+    // where GoldRush says `eth-mainnet`). Null means "no DefiLlama price fallback
+    // for this chain" - the slug itself carries the support fact, so unlike
+    // GoldRush there is no separate supportedByDefillama flag.
+    defillamaName: text("defillama_name"),
   }
 );
 
@@ -36,6 +44,15 @@ export const opportunities = schema.table(
     name: text("name").notNull(),
     chainId: text("chain_id").notNull().references(() => chainMetadata.id),
     current_apy: text("current_apy").notNull(),
+    /**
+     * DeFi Llama pool UUID this row's APY is read from. NULL means "never
+     * refreshed" - current_apy is a hand-set value and the job leaves it alone.
+     * Pinned rather than matched on project/symbol at runtime so a vendor rename
+     * cannot silently repoint a row at the wrong pool.
+     */
+    defillamaPoolId: text("defillama_pool_id"),
+    /** Last successful refresh. NULL means current_apy is still the seed value. */
+    currentApyUpdatedAt: timestamp("current_apy_updated_at"),
     enabled: boolean("enabled").notNull(),
     withdrawalType: text("withdrawal_type", { enum: ["AMOUNT_IN", "AMOUNT_OUT", "NFT"] }).notNull(),
     immediate_withdrawal: boolean("immediate_withdrawal").notNull(),

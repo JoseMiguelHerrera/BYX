@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Asset, ChainMetadata } from "@/app/api/dataModels";
+import { useAppAccess } from "@/app/providers/AppAccess";
 
 
 export default function Withdraw({
@@ -15,12 +16,17 @@ export default function Withdraw({
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [amount, setAmount] = useState<string>("");
   const [recipientAddress, setRecipientAddress] = useState<string>("");
+  const { requireAccess } = useAppAccess();
 
   async function withdraw() {
     if (!selectedChain || !selectedAsset || !amount || !recipientAddress) {
       toast.error("Please fill in all fields");
       return;
     }
+
+    // Withdrawals are signed server-side with our signer, so they need the same
+    // wallet access Invest/Divest do.
+    if (!(await requireAccess("withdraw"))) return;
     
     toast.info("Processing withdrawal request... Please wait.", {
       autoClose: false,

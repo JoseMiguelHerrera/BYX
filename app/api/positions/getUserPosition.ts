@@ -1,29 +1,34 @@
 import { getAllUserTokenMovements, getChainById, getOpportunities } from "@/database/queries";
-import { getUserTokenList } from "@/libs/debank";
+import { getPortfolioAPI } from "@/libs/portfolioAPI/portfolioAPI";
+import type { ChainMetadata } from "@/libs/portfolioAPI/types";
 import { UserPosition } from "../dataModels";
 
 export async function getUserPosition(userAddress: string) {
 
     const opportunities = await getOpportunities();
-    const outputAssets: { address: string; debankChainId: string }[] = [];
+    const outputAssets: { address: string; chain: ChainMetadata }[] = [];
     for (const opportunity of opportunities) {
         for (const outputAsset of opportunity.outputAssets) {
             if (outputAsset.type === "ERC20") { // Not NFT positions for now.
                 const chainMetadata = await getChainById(opportunity.chain);
-                outputAssets.push({ address: outputAsset.address as string, debankChainId: chainMetadata?.debankName as string });
+                if (!chainMetadata) continue;
+                outputAssets.push({ address: outputAsset.address as string, chain: chainMetadata });
             }
         }
     }
-    const chains = outputAssets.reduce((acc, asset) => {
-        if (asset.debankChainId && !acc.includes(asset.debankChainId)) {
-            acc.push(asset.debankChainId);
+    // Dedupe by chain id, not by debankName: a ChainMetadata object is not
+    // comparable by value, and two names could map to one chain.
+    const chains = outputAssets.reduce<ChainMetadata[]>((acc, asset) => {
+        if (!acc.some((c) => c.id === asset.chain.id)) {
+            acc.push(asset.chain);
         }
         return acc;
-    }, [] as string[]);
+    }, []);
 
+    const api = getPortfolioAPI();
     const getUserTokenListPromises = [];
     for (const chain of chains) {
-        getUserTokenListPromises.push(getUserTokenList(userAddress, chain));
+        getUserTokenListPromises.push(api.getTokenList(userAddress, chain));
     }
 
     const userTokenListRaw = await Promise.all(getUserTokenListPromises);

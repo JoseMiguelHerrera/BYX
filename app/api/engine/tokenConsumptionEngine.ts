@@ -1,20 +1,20 @@
 import { OpportunityData, TokenInput,DebankTokenInfo } from "../dataModels";
 import { getAssetBySymbolAndChain, getChainById } from "@/database/queries";
 import { getViemChainByInternalId, InternalChainId } from "./chainPicker";
-import { getTokenInfo } from "@/libs/debank";
+import { getPortfolioAPI } from "@/libs/portfolioAPI/portfolioAPI";
 
 
 //This is super hacky: native asset gas usage in dollars.
 export function getUSDGasBuffer(chainId: string, numberOfOperations: number): number {
     switch (chainId) {
         case InternalChainId.Arbitrum:
-            return 0.66 * numberOfOperations;
+            return 0.1 * numberOfOperations;
         case InternalChainId.Ethereum:
-            return 3.50 * numberOfOperations;
+            return 1 * numberOfOperations;
         case InternalChainId.Berachain:
             return 1 * numberOfOperations;
         case InternalChainId.Base:
-            return 0.66 * numberOfOperations;
+            return 0.20 * numberOfOperations;
     }
     throw new Error("Invalid chain");
 }
@@ -30,8 +30,18 @@ export function prioritizeDebankBalances(debankBalances: DebankTokenInfo[], oppo
             nonNativeAssets.push(balance);
         }
     }
-    // Combine arrays with native assets at the end
-    return [..._prioritizeDebankBalancesByUsdValue(_prioritizeDebankBalancesByChain(nonNativeAssets, opportunity)), ..._prioritizeDebankBalancesByUsdValue(_prioritizeDebankBalancesByChain(nativeAssets, opportunity))];
+
+    const nonNativeAssetsSameChain = nonNativeAssets.filter((a)=>{return a.chain.toLowerCase() === opportunity.chain.toLowerCase()})
+    const nonNativeAssetsDifferentChain = nonNativeAssets.filter((a)=>{return a.chain.toLowerCase() !== opportunity.chain.toLowerCase()})
+
+    const nativeAssetsSameChain = nativeAssets.filter((a)=>{return a.chain.toLowerCase() === opportunity.chain.toLowerCase()})
+    const nativeAssetsDifferentChain = nativeAssets.filter((a)=>{return a.chain.toLowerCase() !== opportunity.chain.toLowerCase()})
+
+    return [..._prioritizeDebankBalancesByUsdValue(nonNativeAssetsSameChain),
+            ..._prioritizeDebankBalancesByUsdValue(nonNativeAssetsDifferentChain),
+            ..._prioritizeDebankBalancesByUsdValue(nativeAssetsSameChain),
+            ..._prioritizeDebankBalancesByUsdValue(nativeAssetsDifferentChain),
+        ]
 }
 
 function _prioritizeDebankBalancesByUsdValue(debankBalances: DebankTokenInfo[]): DebankTokenInfo[] {
@@ -260,7 +270,7 @@ async function getInputTokenUSDGoal(gasBufferedDebankBalances: DebankTokenInfo[]
         } else {
             tokenIdentifier = chainMetadata.debankName
         }
-        const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
+        const tokenInfo = await getPortfolioAPI().getTokenInfo(chainMetadata, tokenIdentifier as string);
         inputTokenPrice = tokenInfo.price;
     }else{
         inputTokenPrice = inputTokenInfo.price;

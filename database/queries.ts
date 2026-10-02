@@ -1,7 +1,7 @@
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { ChainMetadata, Asset, OpportunityData, OpportunityContract, TransactionType } from "@/app/api/dataModels";
-import { eq, sql } from "drizzle-orm";
+import { eq, isNotNull, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import {Transaction} from "@/app/api/dataModels"
 import dotenv from "dotenv";
@@ -74,6 +74,9 @@ export async function getChainMetadata(): Promise<ChainMetadata[]> {
       chainId: schema.chainMetadata.id,
       chainName: schema.chainMetadata.name,
       debankName: schema.chainMetadata.debankName,
+      goldrushName: schema.chainMetadata.goldrushName,
+      supportedByGoldrush: schema.chainMetadata.supportedByGoldrush,
+      defillamaName: schema.chainMetadata.defillamaName,
       assetId: schema.assets.id,
       assetName: schema.assets.name,
       assetSymbol: schema.assets.symbol,
@@ -96,6 +99,9 @@ export async function getChainMetadata(): Promise<ChainMetadata[]> {
         id: row.chainId,
         name: row.chainName,
         debankName: row.debankName,
+        goldrushName: row.goldrushName,
+        supportedByGoldrush: row.supportedByGoldrush,
+        defillamaName: row.defillamaName,
         assets: [],
       });
     }
@@ -119,14 +125,64 @@ export async function getChainMetadata(): Promise<ChainMetadata[]> {
   return Array.from(chainsMap.values());
 }
 
-export async function getChainById(chainId: string): Promise<typeof schema.chainMetadata.$inferSelect | undefined> {
+export async function getChainById(chainId: string): Promise<ChainMetadata | undefined> {
   const db = await getDB();
-  const chain = await db
-    .select()
+
+  // Same chain+assets join as getChainMetadata, filtered to a single chain so
+  // callers get a real ChainMetadata (with `assets`) rather than a bare row.
+  const chainAssetsResult = await db
+    .select({
+      chainId: schema.chainMetadata.id,
+      chainName: schema.chainMetadata.name,
+      debankName: schema.chainMetadata.debankName,
+      goldrushName: schema.chainMetadata.goldrushName,
+      supportedByGoldrush: schema.chainMetadata.supportedByGoldrush,
+      defillamaName: schema.chainMetadata.defillamaName,
+      assetId: schema.assets.id,
+      assetName: schema.assets.name,
+      assetSymbol: schema.assets.symbol,
+      assetIsFundingAsset: schema.assets.isFundingAsset,
+      assetAddress: schema.assets.address,
+      assetPriceUSD: schema.assets.priceUSD,
+      assetDecimals: schema.assets.decimals,
+      assetTokenType: schema.assets.tokenType,
+    })
     .from(schema.chainMetadata)
-    .where(eq(schema.chainMetadata.id, chainId))
-    .limit(1); 
-  return chain[0]
+    .leftJoin(schema.chainAssets, eq(schema.chainMetadata.id, schema.chainAssets.chainId))
+    .leftJoin(schema.assets, eq(schema.chainAssets.assetId, schema.assets.id))
+    .where(eq(schema.chainMetadata.id, chainId));
+
+  const firstRow = chainAssetsResult[0];
+  if (!firstRow) {
+    return undefined;
+  }
+
+  const chain: ChainMetadata = {
+    id: firstRow.chainId,
+    name: firstRow.chainName,
+    debankName: firstRow.debankName,
+    goldrushName: firstRow.goldrushName,
+    supportedByGoldrush: firstRow.supportedByGoldrush,
+    defillamaName: firstRow.defillamaName,
+    assets: [],
+  };
+
+  for (const row of chainAssetsResult) {
+    if (row.assetId) {
+      chain.assets.push({
+        id: row.assetId,
+        name: row.assetName as string,
+        symbol: row.assetSymbol as string,
+        isFundingAsset: row.assetIsFundingAsset as boolean,
+        address: row.assetAddress,
+        priceUSD: parseFloat(row.assetPriceUSD as string),
+        decimals: row.assetDecimals as number,
+        type: row.assetTokenType as "ERC20" | "ERC721" | "ERC1155" | "NATIVE",
+      });
+    }
+  }
+
+  return chain;
 }
 
 export async function getOpportunityById(opportunityId: string): Promise<OpportunityData | null> {
@@ -400,7 +456,6 @@ export async function getAssetBySymbolAndChain(symbol: string, chainId: string):
       priceUSD: schema.assets.priceUSD,
       decimals: schema.assets.decimals,
       tokenType: schema.assets.tokenType,
-      supportedByDebank: schema.assets.supportedByDebank,
     })
     .from(schema.assets)
     .innerJoin(
@@ -451,5 +506,45 @@ export async function getAllUserTokenMovements(userAddress: string) {
     .orderBy(schema.transactions.createdAt); // Optional: order by time
 
   return movements;
+}
+
+/**
+ * Opportunities bound to a DeFi Llama pool. Rows without a `defillama_pool_id`
+ * are omitted on purpose: they are hand-set and the refresh job must not touch
+ * them.
+ */
+export async function getPinnedOpportunities(): Promise<
+  { id: string; poolId: string }[]
+> {
+  const db = await getDB();
+  const rows = await db
+    .select({
+      id: schema.opportunities.id,
+      poolId: schema.opportunities.defillamaPoolId,
+    })
+    .from(schema.opportunities)
+    .where(isNotNull(schema.opportunities.defillamaPoolId));
+  return rows.map((row) => ({ id: row.id, poolId: row.poolId as string }));
+}
+
+/**
+ * Write refreshed APYs, stamping the moment of success.
+ *
+ * Rows absent from `updates` are deliberately left untouched - that is the
+ * fallback path for an opportunity with no pool, a missing pool, or a pool
+ * reporting no fresh value.
+ */
+export async function updateOpportunityApys(
+  updates: { id: string; apy: number }[]
+): Promise<void> {
+  if (updates.length === 0) return;
+  const db = await getDB();
+  const now = new Date();
+  for (const { id, apy } of updates) {
+    await db
+      .update(schema.opportunities)
+      .set({ current_apy: String(apy), currentApyUpdatedAt: now })
+      .where(eq(schema.opportunities.id, id));
+  }
 }
 

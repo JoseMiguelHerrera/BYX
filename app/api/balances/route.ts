@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
 
 import { PrivyClient } from "@privy-io/server-auth";
-import { getBalancesFromDebank } from "@/libs/debank";
+import { PortfolioProviderError } from "@/libs/debank";
+import { getBalances } from "@/libs/portfolioAPI/portfolioAPI";
+import { PORTFOLIO_UNAVAILABLE_MESSAGE } from "@/libs/portfolioErrors";
 import { NextRequest, NextResponse } from "next/server";
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
@@ -17,6 +19,7 @@ export type BalanceSuccessResponse = {
 
 export type BalanceErrorResponse = {
   error: string;
+  code?: string;
 };
 
 /*
@@ -75,11 +78,27 @@ export async function POST(req: NextRequest) {
 
     await client.verifyAuthToken(authToken);
 
-    const balances = await getBalancesFromDebank(address);
+    const balances = await getBalances(address);
 
     return NextResponse.json({ balances: balances });
   } catch (e: any) {
-    console.log(e)
+    if (e instanceof PortfolioProviderError) {
+      // Log a summary only: the underlying AxiosError carries the request
+      // headers, and dumping it would leak the provider API key into logs.
+      console.error(
+        `[api/balances] portfolio provider unavailable (status: ${
+          e.providerStatus ?? "network error"
+        }): ${e.message}`,
+      );
+      return NextResponse.json(
+        {
+          error: PORTFOLIO_UNAVAILABLE_MESSAGE,
+          code: e.code,
+        } satisfies BalanceErrorResponse,
+        { status: 503 },
+      );
+    }
+    console.error("[api/balances] unexpected error:", e?.message ?? e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

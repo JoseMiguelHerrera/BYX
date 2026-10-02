@@ -1,7 +1,7 @@
-import { Chain, encodeFunctionData, http, parseUnits, PublicClient } from "viem";
+import { Chain, encodeFunctionData, parseUnits, PublicClient } from "viem";
 import { Address, createPublicClient } from "viem";
 import { Asset } from "../dataModels";
-import { getViemChainByInternalId } from "./chainPicker";
+import { getViemChainByInternalId, httpFor } from "./chainPicker";
 import { erc20ABI } from "../abis";
 import ServerSideTransactions from "./serverSideTransactions";
 import { PrivyClient } from "@privy-io/server-auth";
@@ -18,7 +18,7 @@ export async function withdraw(
     const viemChain = getViemChainByInternalId(chainId);
     const client = createPublicClient({
       chain: viemChain,
-      transport: http(), // Use default RPC
+      transport: httpFor(viemChain),
     });
     const serverSideTransactions = new ServerSideTransactions(privyClient);
 

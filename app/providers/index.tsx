@@ -5,6 +5,8 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { ToastContainer } from "react-toastify";
 import { mainnet, base, arbitrum, berachain } from "viem/chains";
 import OpportunitiesProvider from "./Opportunities";
+import { PortfolioAvailabilityProvider } from "./PortfolioAvailability";
+import { AppAccessProvider } from "./AppAccess";
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID!;
 
@@ -28,15 +30,21 @@ function Providers({ children }: { children: React.ReactNode }) {
           ],
         },
         embeddedWallets: {
-          createOnLogin: "all-users",
+          ethereum: {
+            createOnLogin: "all-users",
+          },
         },
         supportedChains: [mainnet, base, arbitrum, berachain],
       }}
     >
       <QueryClientProvider client={queryClient}>
-        {children}
-        <ToastContainer />
-        <OpportunitiesProvider />
+        <PortfolioAvailabilityProvider>
+          <AppAccessProvider>
+            {children}
+            <ToastContainer />
+            <OpportunitiesProvider />
+          </AppAccessProvider>
+        </PortfolioAvailabilityProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );

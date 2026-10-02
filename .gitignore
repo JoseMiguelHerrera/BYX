@@ -105,3 +105,8 @@ dist
 .tern-port
 
 .vercel
+
+# Internal planning and review notes (not published)
+docs/
+WHAT-I-WOULD-WORK-ON-NEXT.md
+libs/portfolioAPI/__fixtures__/*/notes.md

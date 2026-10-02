@@ -1,12 +1,6 @@
 import { erc20ABI } from "../../abis";
-import { getViemChainByInternalId } from "../chainPicker";
-import {
-  Address,
-  createPublicClient,
-  http,
-  encodeFunctionData,
-  parseUnits,
-} from "viem";
+import { getViemChainByInternalId, httpFor } from "../chainPicker";
+import { Address, createPublicClient, encodeFunctionData, parseUnits } from "viem";
 import { OpportunityData, TokenInput } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 
@@ -20,7 +14,7 @@ export async function createErc20ApprovalTransaction(
   const viemChain = getViemChainByInternalId(opportunityChain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +

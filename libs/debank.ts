@@ -1,27 +1,81 @@
 import { DebankTokenInfo } from "@/app/api/dataModels";
-import { getChainMetadata } from "@/database/queries";
+import { aggregateBalances } from "@/libs/portfolioAPI/aggregate";
+import { PortfolioProviderError } from "@/libs/portfolioAPI/errors";
+import { debankProvider } from "@/libs/portfolioAPI/providers/debankProvider";
 import axios from "axios";
 import dotenv from "dotenv";
 import { Address } from "viem";
 dotenv.config();
 
-const DEBANK_API_KEY = process.env.DEBANK_API_KEY;
-if (!DEBANK_API_KEY) {
-  throw new Error("DEBANK_API_KEY is not set");
+const DEBANK_API_BASE_URL = "https://pro-openapi.debank.com";
+
+// Without a timeout a provider that hangs (rather than erroring) leaves the
+// request, and therefore the UI, stuck loading forever.
+const DEBANK_REQUEST_TIMEOUT_MS = 15_000;
+
+// Re-exported so every existing import site keeps working. The implementation
+// lives in the neutral layer to keep the dependency graph acyclic
+// (debank -> aggregate -> errors, never aggregate -> debank).
+export { PortfolioProviderError } from "@/libs/portfolioAPI/errors";
+
+async function debankGet<T>(
+  path: string,
+  params: Record<string, string | number | boolean>,
+): Promise<T> {
+  // Checked here rather than at module load: this module is always imported
+  // (the provider selection imports debankProvider unconditionally), so a
+  // module-level throw would break GoldRush-only deployments that legitimately
+  // have no DeBank key.
+  const apiKey = process.env.DEBANK_API_KEY;
+  if (!apiKey) {
+    throw new PortfolioProviderError(
+      "DEBANK_API_KEY is not set but the debank provider was invoked",
+      { providerStatus: undefined },
+    );
+  }
+  try {
+    const response = await axios.get<T>(`${DEBANK_API_BASE_URL}${path}`, {
+      params,
+      timeout: DEBANK_REQUEST_TIMEOUT_MS,
+      headers: {
+        "AccessKey": apiKey,
+        "accept": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const providerStatus = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined;
+    throw new PortfolioProviderError(
+      `Portfolio provider request to ${path} failed${
+        providerStatus ? ` with status ${providerStatus}` : ""
+      }`,
+      { providerStatus, cause: error },
+    );
+  }
 }
 
+/**
+ * The subset of DeBank's `all_token_list` entry this codebase reads. The endpoint
+ * returns more fields, but typing only what is consumed keeps the single caller
+ * (`debankProvider`) honest - a renamed field becomes a compile error instead of a
+ * silent `undefined`.
+ */
+export interface DebankAllTokenEntry {
+  chain: string;
+  symbol: string;
+  amount: number | null;
+  price: number | null;
+}
 
-
-export async function getAllUserTokenList(userAddress: string) {
-    const response = await axios.get(
-        `https://pro-openapi.debank.com/v1/user/all_token_list?id=${userAddress}&is_all=true`,
-        {
-            headers: {
-                'AccessKey': DEBANK_API_KEY
-            }
-        }
-    );
-    return response.data;
+export async function getAllUserTokenList(
+  userAddress: string,
+): Promise<DebankAllTokenEntry[]> {
+  return debankGet<DebankAllTokenEntry[]>("/v1/user/all_token_list", {
+    id: userAddress,
+    is_all: true,
+  });
 }
 
 export type TokenInfo = {
@@ -67,16 +121,10 @@ export type UserTokenBalanceInfo = {
 };
 
 export async function getTokenInfo(chainId: string, tokenAddress: string): Promise<TokenInfo> {
-    console.log(chainId, tokenAddress)
-    const response = await axios.get(
-        `https://pro-openapi.debank.com/v1/token?chain_id=${chainId}&id=${tokenAddress}`,
-        {
-            headers: {
-                'AccessKey': DEBANK_API_KEY
-            }
-        }
-    );
-    return response.data as TokenInfo;
+    return debankGet<TokenInfo>("/v1/token", {
+        chain_id: chainId,
+        id: tokenAddress,
+    });
 }
 
 export async function getUserTokenBalanceInfo(
@@ -84,15 +132,11 @@ export async function getUserTokenBalanceInfo(
   chainId: string,
   tokenId: string
 ): Promise<UserTokenBalanceInfo> {
-  const response = await axios.get(
-    `https://pro-openapi.debank.com/v1/user/token?id=${userAddress}&chain_id=${chainId}&token_id=${tokenId}`,
-    {
-      headers: {
-        'AccessKey': DEBANK_API_KEY,
-      },
-    }
-  );
-  return response.data as UserTokenBalanceInfo;
+  return debankGet<UserTokenBalanceInfo>("/v1/user/token", {
+    id: userAddress,
+    chain_id: chainId,
+    token_id: tokenId,
+  });
 }
 
 export interface UserTokenInfo {
@@ -132,79 +176,18 @@ export async function getUserTokenList(
   userAddress: string,
   chainId: string,
 ): Promise<UserTokenInfo[]> {
-  const response = await axios.get(
-    `https://pro-openapi.debank.com/v1/user/token_list?id=${userAddress}&chain_id=${chainId}&is_all=${true}`,
-    {
-      headers: {
-        'AccessKey': DEBANK_API_KEY,
-        'accept': 'application/json', // Explicitly set accept header
-      },
-    }
-  );
-  // The API returns an array directly
-  return response.data as UserTokenInfo[];
+  // The API returns an array directly.
+  return debankGet<UserTokenInfo[]>("/v1/user/token_list", {
+    id: userAddress,
+    chain_id: chainId,
+    is_all: true,
+  });
 }
 
 
 //This only gets you the "chain assets" aka the funding assets.
 export async function getBalancesFromDebank(address: Address): Promise<DebankTokenInfo[]> {
-    //When we have the database, this should be cached.
-    const chainsMetadata = await getChainMetadata();
-  
-    let balances: DebankTokenInfo[] = [] as DebankTokenInfo[];
-    const debankTokenList = await getAllUserTokenList(address);
-    for (const chainMetadata of chainsMetadata) {
-      for (const asset of chainMetadata.assets) {
-        try {
-          const debankTokenInfo = debankTokenList.find(
-            (debankTokenEntry: any) =>
-              debankTokenEntry.chain === chainMetadata.debankName &&
-              debankTokenEntry.symbol === asset.symbol
-          );
-          if (!debankTokenInfo) {
-            throw new Error(
-              `Token ${asset.symbol} in chain ${chainMetadata.name} not found in debank`
-            );
-          }
-          const usdValue = debankTokenInfo.price * debankTokenInfo.amount;
-          balances.push({
-            chain: chainMetadata.name,
-            balance: debankTokenInfo.amount.toString(),
-            symbol: asset.symbol,
-            usdValue: usdValue,
-            price: debankTokenInfo.price,
-            isNativeAsset: asset.type==="NATIVE"
-          });
-        } catch (e: any) {
-          let tokenIdentifier;
-          //NOTE: This is a hack to get the token identifier for native assets, because debank names their native assets with the chain name.
-          if(asset.type!=="NATIVE"){
-            tokenIdentifier = asset.address;
-          }else{
-            tokenIdentifier = chainMetadata.debankName
-          }
-          try{
-          const tokenInfo = await getTokenInfo(chainMetadata.debankName, tokenIdentifier as string);
-          balances.push({
-            chain: chainMetadata.name,
-            balance: "0",
-            symbol: asset.symbol,
-            usdValue: 0,
-            price: tokenInfo.price,
-            isNativeAsset: asset.type==="NATIVE"
-          });
-          }catch(e:any){
-            balances.push({
-              chain: chainMetadata.name,
-              balance: "0",
-              symbol: asset.symbol,
-              usdValue: 0,
-              price: 0,
-              isNativeAsset: asset.type==="NATIVE"
-            });
-          }
-        }
-      }
-    }
-    return balances;
-  }
+  // Delegates to the shared aggregator so the matching, native-asset and
+  // zero-fill rules exist in exactly one place for both providers.
+  return aggregateBalances(debankProvider, address);
+}

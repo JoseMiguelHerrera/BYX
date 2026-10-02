@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import InvestInOpportunityModal from "./InvestInOpportunityModal";
 import DivestFromOpportunityModal from "./DivestFromOpportunityModal";
-import { getAccessToken, WalletWithMetadata } from "@privy-io/react-auth";
-import { useDelegatedActions, usePrivy } from "@privy-io/react-auth";
+import { getAccessToken } from "@privy-io/react-auth";
 import { toast } from "react-toastify";
 import { OpportunityData } from "@/app/api/dataModels";
+import { usePortfolioAvailability } from "@/app/providers/PortfolioAvailability";
+import { useAppAccess } from "@/app/providers/AppAccess";
+import { PORTFOLIO_UNAVAILABLE_UI_MESSAGE } from "@/libs/portfolioErrors";
 
 export interface Asset {
   name: string;
@@ -19,20 +21,13 @@ export default function Opportunities({
 }: {
   smartWalletAddress: string;
 }) {
-  const { user } = usePrivy();
+  const { isAvailable: isPortfolioAvailable } = usePortfolioAvailability();
+  const { hasAccess, requireAccess, requestRevoke } = useAppAccess();
   const [opportunities, setOpportunities] = useState<OpportunityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityData | null>(null);
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [isDivestModalOpen, setIsDivestModalOpen] = useState(false);
-  // const { client, getClientForChain, } = useSmartWallets();
-  const { delegateWallet, revokeWallets } = useDelegatedActions();
-
-  // Check if the wallet to delegate by inspecting the user's linked accounts
-  const isAlreadyDelegated = !!user?.linkedAccounts.find(
-    (account): account is WalletWithMetadata =>
-      account.type === "wallet" && account.delegated,
-  );
 
   const fetchOpportunities = async () => {
     if (isLoading) return;
@@ -64,32 +59,18 @@ export default function Opportunities({
   };
 
 
-  const delegate = async () => {
-    if (!isAlreadyDelegated) {
-      try {
-        await delegateWallet({
-          address: smartWalletAddress,
-          chainType: "ethereum",
-        }); // or chainType: 'ethereum'
-      } catch (e) {
-        toast.error(`Failed to delegate wallet`);
-      }
-    }
-  };
-
   useEffect(() => {
     fetchOpportunities();
-    delegate();
   }, []);
 
-  const handleInvest = (opportunity: OpportunityData) => {
-    delegate();
+  const handleInvest = async (opportunity: OpportunityData) => {
+    if (!(await requireAccess("invest"))) return;
     setSelectedOpportunity(opportunity);
     setIsInvestModalOpen(true);
   };
 
-  const handleDivest = (opportunity: OpportunityData) => {
-    delegate();
+  const handleDivest = async (opportunity: OpportunityData) => {
+    if (!(await requireAccess("invest"))) return;
     setSelectedOpportunity(opportunity);
     setIsDivestModalOpen(true);
   };
@@ -455,9 +436,14 @@ export default function Opportunities({
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleInvest(opportunity)}
-                        disabled={!opportunity.enabled}
+                        disabled={!opportunity.enabled || !isPortfolioAvailable}
+                        title={
+                          isPortfolioAvailable
+                            ? undefined
+                            : PORTFOLIO_UNAVAILABLE_UI_MESSAGE
+                        }
                         className={`py-2 px-4 rounded ${
-                          opportunity.enabled
+                          opportunity.enabled && isPortfolioAvailable
                             ? "bg-violet-600 hover:bg-violet-700 text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
@@ -466,9 +452,14 @@ export default function Opportunities({
                       </button>
                       <button
                         onClick={() => handleDivest(opportunity)}
-                        disabled={!opportunity.enabled}
+                        disabled={!opportunity.enabled || !isPortfolioAvailable}
+                        title={
+                          isPortfolioAvailable
+                            ? undefined
+                            : PORTFOLIO_UNAVAILABLE_UI_MESSAGE
+                        }
                         className={`py-2 px-4 rounded ${
-                          opportunity.enabled
+                          opportunity.enabled && isPortfolioAvailable
                             ? "bg-red-600 hover:bg-red-700 text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
@@ -483,10 +474,10 @@ export default function Opportunities({
           </table>
         </div>
       </div>
-      {isAlreadyDelegated && (
+      {hasAccess && (
         <div className="absolute bottom-[-40px] left-8">
           <button
-            onClick={() => revokeWallets()}
+            onClick={requestRevoke}
             className="py-1 px-3 text-sm rounded bg-red-600 hover:bg-red-700 text-white"
           >
             Remove Privy Approval

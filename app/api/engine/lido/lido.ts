@@ -1,14 +1,6 @@
 import { lidoSubmitABI, lidoRequestWithdrawalABI } from "../../abis";
-import { getViemChainByInternalId } from "../chainPicker";
-import {
-  Address,
-  createPublicClient,
-  http,
-  encodeFunctionData,
-  formatEther,
-  parseEther,
-  decodeFunctionResult,
-} from "viem";
+import { getViemChainByInternalId, httpFor } from "../chainPicker";
+import { Address, createPublicClient, encodeFunctionData, formatEther, parseEther, decodeFunctionResult } from "viem";
 import { TokenInput, OpportunityData, RedeemStatus } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
@@ -25,7 +17,7 @@ export async function createLidoSubmitTransaction(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -95,7 +87,7 @@ export async function createLidoRequestWithdrawalTransaction(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -139,7 +131,7 @@ export async function createLidoWithdrawalTransaction(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -177,7 +169,7 @@ export async function getLidoWithdrawalRequests(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(),
+    transport: httpFor(viemChain),
   });
 
   const contractAddress = opportunity.contracts.find(

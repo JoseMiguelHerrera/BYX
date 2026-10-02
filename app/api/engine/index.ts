@@ -25,7 +25,7 @@ import { createInfraredCollectRewardsTransaction, createInfraredStakeApprovalTra
 import { performCrossChainSwap } from "./crossChainSwaps/consumeCrossChainTokens";
 import { PrivyClient } from "@privy-io/server-auth";
 import { getChainById } from "@/database/queries";
-import { getUserTokenBalanceInfo } from "@/libs/debank";
+import { getPortfolioAPI } from "@/libs/portfolioAPI/portfolioAPI";
 
 
 interface UserFungibleTokenBalanceInfo {
@@ -46,7 +46,7 @@ async function _getUserFungibleTokenBalanceInfo(
   const debankChainId = chainMetadata.debankName;
   const tokenIdentifier = tokenAddress ? tokenAddress : debankChainId
 
-  const userTokenBalanceInfo = await getUserTokenBalanceInfo(userAddress, debankChainId, tokenIdentifier);
+  const userTokenBalanceInfo = await getPortfolioAPI().getUserTokenBalanceInfo(userAddress, chainMetadata, tokenIdentifier);
   console.log("userTokenBalanceInfo", userTokenBalanceInfo);
   return {
     tokenIdentifier: tokenIdentifier,
@@ -388,6 +388,17 @@ export async function createTransaction(
   } else {
     console.log("Finished creating transactions, attempting to send.");
 
+    //KNOWN HAZARD, deliberately not handled here.
+    //Transactions are broadcast BEFORE the post-transaction snapshots below,
+    //and the movement info they produce is what the caller persists via
+    //writeTransactions(). If the portfolio provider fails in the window
+    //between this broadcast and the post-snapshot capture, createTransaction
+    //throws, the route returns an error, and no transaction record is written
+    //even though the trade already executed on-chain. Gating Invest/Divest on
+    //provider availability reduces exposure to the provider-failed-at-entry
+    //case but cannot remove this one. A real fix (snapshot before broadcast,
+    //or persist an intent record first and reconcile after) is a separate
+    //design.
     const txHashes = await serverSideTransactions.sendTransactions(
       opportunity.chain,
       userAddress,

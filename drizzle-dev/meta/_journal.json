@@ -5,8 +5,43 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1743755411554,
-      "tag": "0000_moaning_adam_warlock",
+      "when": 1790384608403,
+      "tag": "0000_real_excalibur",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790737085231,
+      "tag": "0001_goldrush_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790738350417,
+      "tag": "0002_defillama_slug",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790738827520,
+      "tag": "0003_drop_dead_asset_goldrush_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790807513377,
+      "tag": "0004_drop_dead_asset_debank_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790809105222,
+      "tag": "0005_apy_refresh",
       "breakpoints": true
     }
   ]

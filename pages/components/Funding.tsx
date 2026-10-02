@@ -1,28 +1,6 @@
 import { useState, useEffect } from "react";
-import { useFundWallet } from "@privy-io/react-auth";
-import { getViemChainByInternalId } from "@/app/api/engine/chainPicker";
-import { toast } from "react-toastify";
 import { Asset, ChainMetadata } from "@/app/api/dataModels";
-
-function generateFundingObject(chain: ChainMetadata, asset: Asset) {
-  let viemChain = getViemChainByInternalId(chain.id);
-
-  let assetConfig: string | { erc20: string };
-  if (asset.type === "NATIVE") {
-    assetConfig = "native-currency";
-  } else {
-    if (!asset.address) {
-      console.log("Asset address missing");
-      return null;
-    }
-    assetConfig = { erc20: asset.address };
-  }
-
-  return {
-    chain: viemChain,
-    asset: assetConfig,
-  };
-}
+import CopyButton from "./CopyButton";
 
 export default function Funding({
   smartWalletAddress,
@@ -34,23 +12,6 @@ export default function Funding({
     null,
   );
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const { fundWallet } = useFundWallet();
-
-  function fund() {
-    if (!selectedChain || !selectedAsset) {
-      return;
-    }
-    const fundWalletConfig = generateFundingObject(
-      selectedChain,
-      selectedAsset,
-    );
-    if (!fundWalletConfig) {
-      toast.error(`Failed to generate funding object`);
-      return;
-    }
-    console.log(fundWalletConfig);
-    fundWallet(smartWalletAddress, fundWalletConfig);
-  }
 
   useEffect(() => {
     const fetchChains = async () => {
@@ -119,7 +80,7 @@ export default function Funding({
           )}
 
           {selectedChain && selectedAsset && (
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg space-y-1">
               <p>Selected Chain: {selectedChain.name}</p>
               <p>
                 Selected Asset: {selectedAsset.name} ({selectedAsset.symbol})
@@ -131,20 +92,21 @@ export default function Funding({
               {selectedAsset.address && (
                 <p>Contract Address: {selectedAsset.address}</p>
               )}
+              <p className="pt-3">Send your {selectedAsset.symbol} to:</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono break-all">
+                  {smartWalletAddress}
+                </span>
+                {smartWalletAddress && (
+                  <CopyButton
+                    value={smartWalletAddress}
+                    className="hover:text-violet-900 shrink-0"
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
-        <button
-          onClick={() => fund()}
-          disabled={!selectedChain || !selectedAsset}
-          className={`text-sm py-2 px-4 rounded-md text-white border-none ${
-            selectedChain && selectedAsset
-              ? "bg-violet-600 hover:bg-violet-700"
-              : "bg-gray-400 cursor-not-allowed"
-          }`}
-        >
-          Fund Wallet
-        </button>
       </div>
     </main>
   );

@@ -1,12 +1,6 @@
 import { aaveV3Pool } from "../../abis";
-import { getViemChainByInternalId } from "../chainPicker";
-import {
-  Address,
-  createPublicClient,
-  http,
-  encodeFunctionData,
-  parseUnits,
-} from "viem";
+import { getViemChainByInternalId, httpFor } from "../chainPicker";
+import { Address, createPublicClient, encodeFunctionData, parseUnits } from "viem";
 import { TokenInput, OpportunityData } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
@@ -21,7 +15,7 @@ export async function createAaveV3SupplyTransaction(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -66,7 +60,7 @@ export async function createAaveV3WithdrawTransaction(
   const viemChain = getViemChainByInternalId(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -182,7 +176,7 @@ export async function createLidoSubmitTransaction(
   const viemChain = getViemChain(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -227,7 +221,7 @@ export async function createLidoRequestWithdrawalTransaction(
   const viemChain = getViemChain(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -271,7 +265,7 @@ export async function createLidoWithdrawalTransaction(
   const viemChain = getViemChain(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(), // Use default RPC
+    transport: httpFor(viemChain),
   });
   const nonce =
     (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -309,7 +303,7 @@ export async function getLidoWithdrawalRequests(
   const viemChain = getViemChain(opportunity.chain);
   const client = createPublicClient({
     chain: viemChain,
-    transport: http(),
+    transport: httpFor(viemChain),
   });
 
   const contractAddress = opportunity.contracts.find(

@@ -49,7 +49,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             walletList : ['detected_wallets','metamask','coinbase_wallet','rainbow']
           },
           embeddedWallets: {
-            createOnLogin: "all-users",
+            ethereum: {
+              createOnLogin: "all-users",
+            },
           },
           supportedChains: [mainnet,base,arbitrum,berachain],
         }}

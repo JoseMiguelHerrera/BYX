@@ -1,20 +1,35 @@
-'use client'
+"use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import Head from "next/head";
 import Funding from "@/pages/components/Funding";
+import CopyButton from "@/pages/components/CopyButton";
 import Balances from "@/pages/components/Balances";
 import Opportunities from "@/pages/components/Opportunities";
 import Withdraw from "@/pages/components/Withdraw";
 
 import Positions from "@/pages/components/Positions";
 import useWallet from "../hooks/useWallet";
+import { usePortfolioAvailability } from "../providers/PortfolioAvailability";
+import { PORTFOLIO_UNAVAILABLE_UI_MESSAGE } from "@/libs/portfolioErrors";
+
+function PortfolioUnavailablePanel() {
+  return (
+    <div className="max-w-4xl w-full mx-8 bg-white p-8 rounded-lg shadow-lg space-y-3">
+      <h2 className="text-xl font-bold text-gray-900">Positions unavailable</h2>
+      <p className="text-sm text-gray-600">
+        {PORTFOLIO_UNAVAILABLE_UI_MESSAGE}
+      </p>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const [activeView, setActiveView] = useState("dashboard");
   const router = useRouter();
   const { ready, authenticated, logout } = usePrivy();
+  const { isAvailable: isPortfolioAvailable } = usePortfolioAvailability();
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/");
@@ -53,17 +68,10 @@ export default function DashboardPage() {
                     : "No wallet connected"}
                   {embeddedWallet && (
                     <>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            embeddedWallet?.address,
-                          );
-                        }}
+                      <CopyButton
+                        value={embeddedWallet.address}
                         className="hover:text-violet-900"
-                        title="Copy address"
-                      >
-                        📋
-                      </button>
+                      />
                       <div className="absolute hidden group-hover:block bg-gray-900 text-white p-2 rounded-md text-xs whitespace-nowrap -bottom-10 left-1/2 transform -translate-x-1/2">
                         {embeddedWallet?.address}
                       </div>
@@ -121,15 +129,27 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setActiveView("positions")}
+                disabled={!isPortfolioAvailable}
+                title={
+                  isPortfolioAvailable
+                    ? undefined
+                    : PORTFOLIO_UNAVAILABLE_UI_MESSAGE
+                }
                 className={`text-sm ${
-                  activeView === "positions"
-                    ? "bg-violet-700"
-                    : "bg-violet-600"
-                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none`}
+                  activeView === "positions" ? "bg-violet-700" : "bg-violet-600"
+                } hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600`}
               >
                 Positions
               </button>
             </div>
+
+            {ready && authenticated && !isPortfolioAvailable && (
+              <p className="mt-4 text-xs leading-relaxed text-violet-200">
+                Portfolio data is temporarily unavailable, so Positions and
+                Invest/Divest are disabled. Refresh your balances on this page
+                to retry.
+              </p>
+            )}
           </div>
 
           {/* Main Content */}
@@ -150,9 +170,13 @@ export default function DashboardPage() {
                       smartWalletAddress={embeddedWallet?.address || ""}
                     />
                   ) : activeView === "positions" ? (
-                    <Positions
-                      smartWalletAddress={embeddedWallet?.address || ""}
-                    />
+                    isPortfolioAvailable ? (
+                      <Positions
+                        smartWalletAddress={embeddedWallet?.address || ""}
+                      />
+                    ) : (
+                      <PortfolioUnavailablePanel />
+                    )
                   ) : (
                     <Balances
                       smartWalletAddress={embeddedWallet?.address || ""}

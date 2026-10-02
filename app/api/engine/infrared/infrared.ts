@@ -1,12 +1,6 @@
 import { InfraredVaultABI } from "../../abis";
-import { getViemChainByInternalId } from "../chainPicker";
-import {
-    Address,
-    createPublicClient,
-    http,
-    encodeFunctionData,
-    parseUnits,
-} from "viem";
+import { getViemChainByInternalId, httpFor } from "../chainPicker";
+import { Address, createPublicClient, encodeFunctionData, parseUnits } from "viem";
 import { TokenInput, OpportunityData } from "../../dataModels";
 import { genericValidateTokenInputs } from "../validateAssets";
 import { createErc20ApprovalTransaction } from "../generic/approveErc20Token";
@@ -24,7 +18,7 @@ export async function createInfraredStakeTransaction(
     const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -106,7 +100,7 @@ export async function createInfraredWithdrawalTransaction(
     const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) +
@@ -155,7 +149,7 @@ export async function createInfraredCollectRewardsTransaction(
     const viemChain = getViemChainByInternalId(opportunity.chain);
     const client = createPublicClient({
         chain: viemChain,
-        transport: http(), // Use default RPC
+        transport: httpFor(viemChain),
     });
     const nonce =
         (await client.getTransactionCount({ address: userAddress as Address })) +

@@ -3,6 +3,16 @@ export interface ChainMetadata {
   id: string;
   name: string;
   debankName: string;
+  /** GoldRush chain slug, e.g. "eth-mainnet". Populated by the final migration. */
+  goldrushName?: string | null;
+  /** Static coverage flag. Falsey/absent means "hide this chain" under GoldRush. */
+  supportedByGoldrush?: boolean | null;
+  /**
+   * DefiLlama chain slug for the LP price fallback, e.g. "ethereum". Note this is
+   * NOT `goldrushName` ("eth-mainnet") - the two vendors use different schemes.
+   * Absent/null means no fallback for this chain.
+   */
+  defillamaName?: string | null;
   assets: Asset[];
 }
 

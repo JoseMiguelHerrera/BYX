@@ -1,0 +1,18 @@
+{
+  "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+  "chain": "eth",
+  "name": "Tether USD",
+  "symbol": "USDT",
+  "display_symbol": null,
+  "optimized_symbol": "USDT",
+  "decimals": 6,
+  "logo_url": "https://static.debank.com/image/eth_token/logo_url/0xdac17f958d2ee523a2206206994597c13d831ec7/66eadee7b7bb16b75e02b570ab8d5c01.png",
+  "protocol_id": "",
+  "price": 1,
+  "is_verified": true,
+  "is_core": true,
+  "is_wallet": true,
+  "time_at": 1511829681,
+  "amount": 5.512815,
+  "raw_amount": 5512815
+}
